@@ -29,7 +29,8 @@ SYSTEM_PROMPT = (
     "places in CONTEXT), set needs_more_info to true and ask ONE short follow-up question.\n"
     "5. Itineraries: give a simple ordered list; do not claim optimal routes or exact journey times.\n"
     "6. Be concise (under 180 words), practical and safety-aware. Reply in the user's language. "
-    "Use plain text with '-' bullets; no markdown tables or headings."
+    "Use plain text: put each suggestion on its own line starting with '- ' (use real line breaks), "
+    "no markdown bold, tables or headings."
 )
 
 RESPONSE_SCHEMA = {
@@ -155,10 +156,20 @@ def parse_gemini(data: dict) -> dict:
         return {"reply": text, "place_ids": [], "needs_more_info": False}
     ids = parsed.get("place_ids") if isinstance(parsed.get("place_ids"), list) else []
     return {
-        "reply": parsed["reply"].strip(),
+        "reply": format_reply(parsed["reply"].strip()),
         "place_ids": [i for i in ids if isinstance(i, str)],
         "needs_more_info": bool(parsed.get("needs_more_info")),
     }
+
+
+_INLINE_BULLET = re.compile(r"([:.!?])\s+-\s+(?=\S)")
+
+
+def format_reply(text: str) -> str:
+    """Models sometimes write lists inline ("Try: - A. - B."). Put each bullet on its own line."""
+    if "\n- " in text or len(_INLINE_BULLET.findall(text)) < 2:
+        return text
+    return _INLINE_BULLET.sub(lambda m: m.group(1) + "\n- ", text)
 
 
 def grounded_places(place_ids: list[str], candidates: list[dict], limit: int = 6) -> list[dict]:

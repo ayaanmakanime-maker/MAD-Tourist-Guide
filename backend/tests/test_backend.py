@@ -336,3 +336,13 @@ def test_ttl_cache_expires():
     assert cache.get("k", 10) == 1
     clock[0] = 11
     assert cache.get("k", 10) is None
+
+
+def test_inline_bullets_are_split_into_lines():
+    text = "Try this: - Start at the Gateway. - Walk to the museum. - Lunch at Leopold Cafe."
+    assert assistant.format_reply(text) == ("Try this:\n- Start at the Gateway.\n- Walk to the museum."
+                                            "\n- Lunch at Leopold Cafe.")
+    # Prose with a single dash, hyphenated words or an existing list stays unchanged.
+    assert assistant.format_reply("A half-day trip - easy.") == "A half-day trip - easy."
+    already = "Plan:\n- A\n- B"
+    assert assistant.format_reply(already) == already
