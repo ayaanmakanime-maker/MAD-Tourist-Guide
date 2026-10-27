@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="cream">#F7F5DF</color>
+    <color name="forest">#1D3933</color>
+    <color name="teal">#159C8C</color>
+    <color name="gold">#DDBB63</color>
+    <color name="pale">#E5F1EC</color>
+    <color name="white">#FFFFFF</color>
+    <color name="text_primary">#21302B</color>
+    <color name="text_secondary">#5D6D66</color>
+    <color name="text_hint">#8FA39B</color>
+    <color name="stroke_soft">#D8E2DA</color>
+    <color name="hero_body">#D7E1D9</color>
+    <color name="error">#B3261E</color>
+</resources>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tourist Guide</string>
+    <string name="tab_explore">Explore</string>
+    <string name="tab_map">Map</string>
+    <string name="tab_plan">Plan</string>
+    <string name="tab_chat">Chat</string>
+    <string name="tab_more">More</string>
+
+    <string name="hero_eyebrow">Your city, your way</string>
+    <string name="hero_title">Find your next favourite place.</string>
+    <string name="hero_body">Discover landmarks, coastal escapes and local experiences across Mumbai.</string>
+
+    <string name="search_hint">Search attractions or areas</string>
+    <string name="surprise_button">Surprise me with a place</string>
+    <string name="quiz_title">Mumbai mini-quiz</string>
+    <string name="quiz_reveal">Reveal answer</string>
+    <string name="quiz_hide">Hide answer</string>
+    <string name="quiz_next">Next question</string>
+    <string name="explore_interests">Explore by interest</string>
+    <string name="filter_all">All</string>
+    <string name="filter_historic">Historic</string>
+    <string name="filter_beach">Beach</string>
+    <string name="filter_museum">Museum</string>
+    <string name="filter_shopping">Shopping</string>
+    <string name="filter_nature">Nature</string>
+    <string name="popular_attractions">Popular attractions</string>
+    <string name="no_attractions">No attractions found. Try a different search.</string>
+    <string name="travel_tip">Travel tip: check local opening hours and access information before you leave.</string>
+    <string name="item_view_details">Learn more</string>
+    <string name="directions">Directions</string>
+
+    <string name="map_title">Explore the map</string>
+    <string name="map_subtitle">Tap a pin to open its details.</string>
+    <string name="map_key_missing">The embedded map needs a Google Maps API key. Add MAPS_API_KEY to local.properties, or open places directly in the Google Maps app below.</string>
+    <string name="map_key_missing_title">Map preview unavailable</string>
+    <string name="map_open_external">Open all places in Google Maps</string>
+    <string name="map_location_denied">Location permission was declined. You can still browse the map.</string>
+    <string name="map_location_approx">Approximate location</string>
+    <string name="map_location_unavailable">Could not get your location. Try again.</string>
+
+    <string name="detail_about">About this place</string>
+    <string name="detail_save">Save this place</string>
+    <string name="detail_unsave">Remove from saved</string>
+    <string name="detail_add_itinerary">Add to plan</string>
+    <string name="detail_in_itinerary">In your plan</string>
+    <string name="detail_free_entry">Free entry*</string>
+    <string name="detail_budget_fmt">₹%1$d approx.</string>
+    <string name="stat_area">Area</string>
+    <string name="detail_min_visit_fmt">min visit: %1$d min</string>
+    <string name="detail_note">Entry fees, access and opening hours can change. Confirm details with official sources before visiting.</string>
+    <string name="detail_area_fmt">📍 %1$s, Mumbai</string>
+    <string name="place_sub_fmt">%1$s • %2$s</string>
+    <string name="place_meta_fmt">%1$d min visit • %2$s</string>
+    <string name="plan_meta_fmt">%1$s • %2$s • %3$s</string>
+    <string name="saved_toast">Saved to your places</string>
+    <string name="unsaved_toast">Removed from saved</string>
+    <string name="plan_added_toast">Added to your plan</string>
+    <string name="already_in_plan">Already in your plan</string>
+
+    <string name="saved_title">Your saved places</string>
+    <string name="saved_empty">Nothing saved yet. Tap the heart on any attraction to keep it here.</string>
+
+    <string name="plan_title">Your Mumbai plan</string>
+    <string name="plan_empty">Your plan is empty. Explore Mumbai and add places you want to visit.</string>
+    <string name="plan_summary_time_fmt">Estimated time: %1$d min (~%2$s h)</string>
+    <string name="plan_summary_budget_fmt">Estimated budget: ₹%1$d (attractions only)</string>
+    <string name="plan_summary_note">Travel time and meals are not included. Confirm ticket prices with official sources.</string>
+    <string name="plan_clear">Clear plan</string>
+    <string name="plan_clear_confirm">Remove all stops from your plan?</string>
+    <string name="plan_clear_yes">Clear</string>
+    <string name="cancel">Cancel</string>
+    <string name="plan_cleared">Plan cleared</string>
+    <string name="remove">Remove</string>
+    <string name="plan_optimise">Group by area</string>
+    <string name="plan_reorder_toast">Stops grouped by area</string>
+    <string name="plan_open_day">Open the full day in Maps</string>
+
+    <string-array name="filter_labels">
+        <item>@string/filter_all</item>
+        <item>@string/filter_historic</item>
+        <item>@string/filter_beach</item>
+        <item>@string/filter_museum</item>
+        <item>@string/filter_shopping</item>
+        <item>@string/filter_nature</item>
+    </string-array>
+
+    <string name="quiz_header_fmt">%1$s  •  %2$d/3</string>
+
+    <string name="chat_title">Travel assistant</string>
+    <string name="chat_input_hint">Ask for a Mumbai trip idea…</string>
+    <string name="chat_desc_send">Send message</string>
+    <string name="chat_pending">Thinking…</string>
+    <string name="chat_fallback_title">Offline suggestion</string>
+    <string name="chat_fallback_body">Start at CSMT heritage terminus, continue to the Gateway of India, then relax along Marine Drive. Check travel time, opening hours and current access before leaving.</string>
+    <string name="chat_offline_note">Offline suggestion — Gemini is unavailable. Check your internet connection and try again.</string>
+    <string name="chat_gemini_state">Gemini - %1$s</string>
+    <string name="chat_gemini_missing">Gemini key not configured</string>
+    <string name="chat_retry">Retry online answer</string>
+    <string name="chat_disclaimer">AI replies are suggestions, not verified listings. Double-check hours and prices.</string>
+    <string name="chat_greet_body">Hi! I can suggest an itinerary for your budget and interests. Try: “Plan a half-day trip for two”.</string>
+    <string name="settings_ai_server">AI assistant</string>
+    <string name="save">Save</string>
+
+    <string name="more_title">Your explorer profile</string>
+    <string name="profile_name_fmt">Mumbai Explorer</string>
+    <string name="badge_curator_emoji">🏅</string>
+    <string name="badge_planner_emoji">🧭</string>
+    <string name="profile_stats_fmt">%1$d saved • %2$d planned</string>
+    <string name="badge_curator_name">Local Curator</string>
+    <string name="badge_planner_name">Trip Planner</string>
+    <string name="badge_curator_locked">Save %1$d more places to unlock</string>
+    <string name="badge_planner_locked">Add %1$d plan stops to unlock</string>
+    <string name="badge_earned">Earned</string>
+    <string name="personality_title">Pick your travel personality</string>
+    <string name="more_food_title">Sample food stops</string>
+    <string name="more_food_body">Street-food ideas by area. Availability and timings change; verify locally.</string>
+    <string name="more_city_title">Offline city guide</string>
+    <string name="more_city_body">Fort and Colaba hold much of Mumbai\u2019s heritage architecture. Marine Drive and the Worli Sea Link are best around sunset. Juhu Beach fills up for street food in the evening. Joggers use Marine Drive early morning and Shivaji Park afternoons.</string>
+    <string name="more_settings_title">Settings</string>
+    <string name="more_ai_value">Gemini - %1$s (direct)</string>
+    <string name="more_about_app">Tourist Guide v%1$s — your city helper for planning visits to Mumbai.</string>
+    <string name="personality_history">History buff</string>
+    <string name="personality_foodie">Foodie</string>
+    <string name="personality_nature">Nature lover</string>
+    <string name="personality_photo">Photography fan</string>
+    <string name="plan_add">Set as my plan</string>
+    <string name="picks_history">History buff picks: the Gateway of India and its harbour ferries, the UNESCO-listed CSMT terminus, the Vastu Sangrahalaya museum, and the rock-cut Elephanta Caves make a classic heritage trail.</string>
+    <string name="picks_foodie">Foodie picks: graze the street stalls at Colaba Causeway, try chaat at Juhu Beach, and end with a sunset snack at Girgaon Chowpatty.</string>
+    <string name="picks_nature">Nature picks: sunrise along Marine Drive, greenery at Hanging Gardens, deer and trails at Sanjay Gandhi National Park, and the sea vistas of the Bandra-Worli Sea Link.</string>
+    <string name="picks_photo">Photography picks: golden hour at the Gateway of India, the Queen\u2019s Necklace curve of Marine Drive, the sweeping Bandra-Worli Sea Link, and dusk crowds at Girgaon Chowpatty.</string>
+
+    <string name="error_no_maps">No maps app available</string>
+    <string name="quiz_q1">Which Mumbai landmark is famous for its Victorian Gothic architecture?</string>
+    <string name="quiz_a1">CSMT (Chhatrapati Shivaji Maharaj Terminus) — a UNESCO World Heritage Site.</string>
+    <string name="quiz_q2">What is Marine Drive\u2019s famous night-time nickname?</string>
+    <string name="quiz_a2">The Queen\u2019s Necklace, because the streetlights resemble a string of pearls.</string>
+    <string name="quiz_q3">Which popular Mumbai arch faces the Arabian Sea?</string>
+    <string name="quiz_a3">The Gateway of India, in Colaba.</string>
+</resources>

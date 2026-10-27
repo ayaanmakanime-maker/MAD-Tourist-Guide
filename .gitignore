@@ -1,0 +1,25 @@
+# Gradle
+.gradle/
+build/
+app/build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Android Studio must generate this with your SDK path; never commit it
+local.properties
+
+# Local credentials
+backend/.env
+backend/.venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+captured/
