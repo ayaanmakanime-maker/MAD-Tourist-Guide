@@ -24,6 +24,8 @@
     <color name="warning_text">#5E4500</color>
     <color name="skeleton">#E3E8E2</color>
     <color name="user_bubble">#1D3933</color>
+    <color name="pin_sight">#C62828</color>
+    <color name="pin_food">#D96C00</color>
 
     <!-- Brand colours that do not change in dark mode (launcher icon). -->
     <color name="forest">#1D3933</color>

@@ -2,10 +2,7 @@ package com.example.touristguide;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,18 +28,26 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.osmdroid.util.GeoPoint;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Map of the same places Explore shows (from {@link PlaceRepository}) plus the trip's stops.
  * Markers: red = attractions, orange = food, teal = in your plan.
+ *
+ * <p>Uses Google Maps when a MAPS_API_KEY is configured, otherwise OpenStreetMap ({@link OsmMap}),
+ * which needs no key, so the map always works.</p>
  */
 public class MapTabFragment extends Fragment implements OnMapReadyCallback, PlaceRepository.Listener {
 
     private FragmentTabMapBinding binding;
     private GoogleMap map;
+    private OsmMap osm;
     private final Map<Marker, String> markerIds = new HashMap<>();
     private final Map<String, Marker> markersById = new HashMap<>();
     private boolean keepCamera;
@@ -60,6 +65,7 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback, Plac
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        OsmMap.configure(requireContext()); // before the OSM MapView is inflated
         binding = FragmentTabMapBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -67,23 +73,46 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback, Plac
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         if (hasMapKey()) {
-            binding.fallback.setVisibility(View.GONE);
             SupportMapFragment child = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
             if (child != null) child.getMapAsync(this);
         } else {
             binding.map.setVisibility(View.GONE);
-            binding.locationFab.setVisibility(View.GONE);
-            binding.fallback.setVisibility(View.VISIBLE);
+            binding.osmMap.setVisibility(View.VISIBLE);
+            osm = new OsmMap(binding.osmMap, new OsmMap.Listener() {
+                @Override
+                public void onPlaceTapped(Place place) {
+                    ((MainActivity) requireActivity()).openDetails(place);
+                }
+
+                @Override
+                public void onUserMovedMap() {
+                    if (binding != null) binding.searchArea.setVisibility(View.VISIBLE);
+                }
+            });
+            PlaceRepository.addListener(this);
         }
-        binding.openExternal.setOnClickListener(v -> openOverviewInMapsApp());
         binding.locationFab.setOnClickListener(v -> onLocationFab());
         binding.searchArea.setOnClickListener(v -> searchThisArea());
         if (PlaceRepository.state() == null) PlaceRepository.load(Store.savedQuery(), false);
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (osm != null) osm.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        if (osm != null) osm.onPause();
+        super.onPause();
+    }
+
+    @Override
     public void onDestroyView() {
         PlaceRepository.removeListener(this);
+        if (osm != null) osm.onDestroy();
+        osm = null;
         map = null;
         binding = null;
         super.onDestroyView();
@@ -122,9 +151,10 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback, Plac
 
     @Override
     public void onPlacesChanged(PlaceRepository.State state) {
-        if (binding == null || map == null) return;
-        drawMarkers(state);
+        if (binding == null) return;
         binding.mapStatus.setText(statusText(state));
+        if (osm != null) drawOsm(state);
+        else if (map != null) drawMarkers(state);
     }
 
     private String statusText(PlaceRepository.State s) {
@@ -141,6 +171,26 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback, Plac
         }
     }
 
+    /** Plan stops first so they keep their colour even when they are also in the results. */
+    private static List<Place> placesToShow(PlaceRepository.State state) {
+        Map<String, Place> all = new LinkedHashMap<>();
+        for (Itinerary.Stop s : PlanRepository.get().stops()) all.put(s.id(), s.place);
+        for (Place p : state.places) if (!all.containsKey(p.id)) all.put(p.id, p);
+        return new ArrayList<>(all.values());
+    }
+
+    // ------------------------------------------------------------------ OpenStreetMap
+
+    private void drawOsm(PlaceRepository.State state) {
+        Place focus = PlaceRepository.get(PlaceRepository.consumeMapFocus());
+        boolean moveCamera = focus == null && !keepCamera;
+        keepCamera = false;
+        osm.draw(state, placesToShow(state), moveCamera);
+        if (focus != null) osm.focus(focus);
+    }
+
+    // ------------------------------------------------------------------ Google Maps
+
     private void drawMarkers(PlaceRepository.State state) {
         map.clear();
         markerIds.clear();
@@ -148,12 +198,7 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback, Plac
         LatLngBounds.Builder bounds = new LatLngBounds.Builder();
         int count = 0;
 
-        // Plan stops first so they keep their colour even when also in the results.
-        Map<String, Place> all = new LinkedHashMap<>();
-        for (Itinerary.Stop s : PlanRepository.get().stops()) all.put(s.id(), s.place);
-        for (Place p : state.places) if (!all.containsKey(p.id)) all.put(p.id, p);
-
-        for (Place p : all.values()) {
+        for (Place p : placesToShow(state)) {
             boolean inPlan = PlanRepository.contains(p.id);
             float hue = inPlan ? BitmapDescriptorFactory.HUE_CYAN
                     : p.food ? BitmapDescriptorFactory.HUE_ORANGE : BitmapDescriptorFactory.HUE_RED;
@@ -208,10 +253,23 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback, Plac
         return true;
     }
 
+    // ------------------------------------------------------------------ shared actions
+
     private void searchThisArea() {
-        if (map == null) return;
-        LatLng target = map.getCameraPosition().target;
-        LocationRepository.select(new LocationRepository.Selected(target.latitude, target.longitude,
+        double lat;
+        double lng;
+        if (osm != null) {
+            GeoPoint c = osm.centre();
+            lat = c.getLatitude();
+            lng = c.getLongitude();
+        } else if (map != null) {
+            LatLng target = map.getCameraPosition().target;
+            lat = target.latitude;
+            lng = target.longitude;
+        } else {
+            return;
+        }
+        LocationRepository.select(new LocationRepository.Selected(lat, lng,
                 getString(R.string.location_map_area), LocationRepository.Kind.MANUAL));
         binding.searchArea.setVisibility(View.GONE);
         keepCamera = true;
@@ -254,17 +312,6 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback, Plac
             map.setMyLocationEnabled(true);
         } catch (SecurityException ignored) {
             // Permission revoked between the check and the call.
-        }
-    }
-
-    private void openOverviewInMapsApp() {
-        LocationRepository.Selected loc = LocationRepository.selected();
-        Uri uri = Uri.parse("https://www.google.com/maps/search/?api=1&query="
-                + Uri.encode("tourist attractions near " + loc.label));
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, uri));
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(requireContext(), R.string.error_no_maps, Toast.LENGTH_SHORT).show();
         }
     }
 }

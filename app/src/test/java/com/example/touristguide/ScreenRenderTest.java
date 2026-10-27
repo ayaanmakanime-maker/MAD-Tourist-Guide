@@ -123,7 +123,8 @@ public class ScreenRenderTest {
         save(a, theme + "-5-more");
 
         tab(a, R.id.nav_map);
-        save(a, theme + "-6-map-nokey");
+        try { Thread.sleep(4000); } catch (InterruptedException ignored) { } // let OSM tiles load
+        save(a, theme + "-6-map-osm");
 
         tab(a, R.id.nav_explore);
         a.openDetails(Catalog.byName("Gateway of India"));

@@ -123,10 +123,13 @@ public class UiSmokeTest {
     }
 
     @Test
-    public void mapWithoutKeyShowsFallbackPanel() {
+    public void mapWithoutGoogleKeyUsesOpenStreetMap() {
         MainActivity a = launchMain();
         selectTab(a, R.id.nav_map);
-        assertEquals(View.VISIBLE, a.findViewById(R.id.fallback).getVisibility());
+        assertEquals(View.VISIBLE, a.findViewById(R.id.osmMap).getVisibility());
+        assertEquals(View.GONE, a.findViewById(R.id.map).getVisibility());
+        waitFor("markers", () -> ((org.osmdroid.views.MapView) a.findViewById(R.id.osmMap)).getOverlays().size()
+                > Catalog.PLACES.size());
     }
 
     @Test

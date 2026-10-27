@@ -46,6 +46,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
+            <!-- Shown instead of Google Maps when no MAPS_API_KEY is set (no key or billing needed). -->
+            <org.osmdroid.views.MapView
+                android:id="@+id/osmMap"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/map_osm_desc"
+                android:visibility="gone" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/searchArea"
                 style="@style/Widget.Material3.Button.ElevatedButton"
@@ -58,43 +66,6 @@
                 android:visibility="gone"
                 app:icon="@drawable/ic_refresh" />
 
-            <LinearLayout
-                android:id="@+id/fallback"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="16dp"
-                android:background="@drawable/bg_bubble_bot"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="20dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/map_key_missing_title"
-                    android:textColor="@color/title"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    style="@style/Text.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/map_key_missing"
-                    android:textColor="@color/text_secondary" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/openExternal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:minHeight="48dp"
-                    android:text="@string/map_open_external" />
-            </LinearLayout>
         </FrameLayout>
     </LinearLayout>
 
@@ -106,5 +77,6 @@
         android:layout_margin="16dp"
         android:contentDescription="@string/map_my_location"
         android:src="@drawable/ic_my_location"
+        app:backgroundTint="@color/accent"
         app:tint="@color/on_accent" />
 </FrameLayout>

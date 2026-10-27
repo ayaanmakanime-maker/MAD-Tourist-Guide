@@ -22,4 +22,6 @@
     <color name="warning_text">#F3D58C</color>
     <color name="skeleton">#28322E</color>
     <color name="user_bubble">#2C5A4F</color>
+    <color name="pin_sight">#EF6B6B</color>
+    <color name="pin_food">#FFB25C</color>
 </resources>

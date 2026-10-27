@@ -4,7 +4,7 @@ Everything is optional: with no keys at all the app runs on the curated Mumbai g
 
 | Feature | Needs | Where the secret lives |
 |---|---|---|
-| Embedded map | Maps SDK for Android key | `local.properties` → `MAPS_API_KEY` (Android-restricted) |
+| Google Maps instead of the built-in OpenStreetMap map (optional) | Maps SDK for Android key | `local.properties` → `MAPS_API_KEY` (Android-restricted) |
 | Live places, photos, restaurant search | Places API (New) key + billing | `backend/.env` → `PLACES_API_KEY` (server key) |
 | AI assistant | Gemini API key | `backend/.env` → `GEMINI_API_KEY` |
 | Login + cloud backup | Firebase project | `app/google-services.json` + Firestore rules |
@@ -117,6 +117,7 @@ Then on a device: Explore should show **Live · Google Maps**, the Chat header *
 | Explore says "curated guide… Can't reach the server" | Backend not running, wrong server address, or phone not on the same network. |
 | "Live places are not configured on the server" | `PLACES_API_KEY` missing in `backend/.env`; restart uvicorn. |
 | "Google Places rejected the server key" | Places API (New) not enabled, billing not linked, or the key's API/IP restrictions exclude the server. |
-| Map shows "Map preview unavailable" | `MAPS_API_KEY` missing in `local.properties`; rebuild. |
+| Map shows OpenStreetMap instead of Google Maps | Expected without `MAPS_API_KEY`. Add the key to `local.properties` and rebuild to switch to Google Maps. |
+| OpenStreetMap is blank/grey | The emulator/phone has no internet access (tiles are downloaded). |
 | Map is grey | Android key restriction doesn't match the package name/SHA-1, or Maps SDK for Android isn't enabled. |
 | "Accounts aren't set up in this build" | `app/google-services.json` missing; add it and rebuild. |

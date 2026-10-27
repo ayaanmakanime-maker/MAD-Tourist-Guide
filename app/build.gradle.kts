@@ -82,6 +82,8 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0")
     implementation("com.google.android.gms:play-services-maps:20.1.0")
     implementation("com.google.android.gms:play-services-location:21.4.0")
+    // Key-free OpenStreetMap map, used when no Google Maps key is configured.
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
 
     implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
     implementation("com.google.firebase:firebase-auth")

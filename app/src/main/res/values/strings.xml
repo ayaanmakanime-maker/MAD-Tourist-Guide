@@ -125,11 +125,9 @@
     <string name="map_status_cached_fmt">%1$d saved places from %2$s (not live) · teal pins: your plan</string>
     <string name="map_status_curated_fmt">%1$d places from the curated guide (not live) · teal pins: your plan</string>
     <string name="map_marker_plan_fmt">%1$s (in your plan)</string>
+    <string name="map_osm_desc">Map of places near you. Pins open place details.</string>
     <string name="map_search_area">Search this area</string>
     <string name="map_my_location">Use my location</string>
-    <string name="map_key_missing">The embedded map needs a Google Maps API key. Add MAPS_API_KEY to local.properties, or open places directly in the Google Maps app below.</string>
-    <string name="map_key_missing_title">Map preview unavailable</string>
-    <string name="map_open_external">Open in Google Maps</string>
     <string name="map_location_denied">Location permission was declined. You can still browse and choose an area.</string>
     <string name="map_location_unavailable">Could not get your location. Try again or choose an area.</string>
 
