@@ -373,6 +373,11 @@
     <string name="theme_system">Follow system</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="settings_map">Map style</string>
+    <string name="map_google">Google Maps (needs a key with billing enabled)</string>
+    <string name="map_osm">OpenStreetMap (free, no key)</string>
+    <string name="map_osm_no_key">OpenStreetMap (no Google Maps key in this build)</string>
+    <string name="map_google_needs_key">Add MAPS_API_KEY to local.properties and rebuild to use Google Maps.</string>
     <string name="settings_ai_server">Server address</string>
     <string name="settings_server_hint">Server URL</string>
     <string name="settings_server_helper">Default: %1$s (the emulator\'s view of your computer). On a phone, use your computer\'s IP address.</string>

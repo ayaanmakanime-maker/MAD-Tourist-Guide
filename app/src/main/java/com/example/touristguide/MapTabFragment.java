@@ -72,7 +72,7 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback, Plac
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        if (hasMapKey()) {
+        if (hasGoogleMapsKey(requireContext()) && Store.useGoogleMaps()) {
             SupportMapFragment child = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
             if (child != null) child.getMapAsync(this);
         } else {
@@ -118,10 +118,11 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback, Plac
         super.onDestroyView();
     }
 
-    private boolean hasMapKey() {
+    /** True when the build includes a MAPS_API_KEY (it may still fail if the key's project has no billing). */
+    static boolean hasGoogleMapsKey(android.content.Context c) {
         try {
-            Bundle meta = requireActivity().getPackageManager()
-                    .getApplicationInfo(requireContext().getPackageName(), PackageManager.GET_META_DATA).metaData;
+            Bundle meta = c.getPackageManager()
+                    .getApplicationInfo(c.getPackageName(), PackageManager.GET_META_DATA).metaData;
             String key = meta == null ? "" : meta.getString("com.google.android.geo.API_KEY", "");
             return key != null && !key.trim().isEmpty();
         } catch (PackageManager.NameNotFoundException e) {

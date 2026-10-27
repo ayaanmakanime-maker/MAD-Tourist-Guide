@@ -39,6 +39,7 @@ public final class Store {
     private static final String BACKEND_URL = "backend_url";
     private static final String THEME = "theme_mode";
     private static final String LIVE_ENABLED = "live_places";
+    private static final String GOOGLE_MAPS = "use_google_maps";
     private static final String LOCATION_ASKED = "location_rationale_seen";
 
     /** Live results are only reused for 24 hours, and always labelled as cached. */
@@ -288,6 +289,15 @@ public final class Store {
 
     public static void setLiveEnabled(boolean enabled) {
         p.edit().putBoolean(LIVE_ENABLED, enabled).apply();
+    }
+
+    /** Prefer Google Maps when a key is built in; false = always OpenStreetMap. */
+    public static boolean useGoogleMaps() {
+        return p.getBoolean(GOOGLE_MAPS, true);
+    }
+
+    public static void setUseGoogleMaps(boolean use) {
+        p.edit().putBoolean(GOOGLE_MAPS, use).apply();
     }
 
     // ------------------------------------------------------------------ cloud backup snapshot

@@ -65,6 +65,7 @@ public class MoreFragment extends Fragment {
             PlaceRepository.clearCache();
         });
         binding.themeRow.setOnClickListener(v -> chooseTheme());
+        binding.mapRow.setOnClickListener(v -> chooseMap());
         binding.serverRow.setOnClickListener(v -> editServer());
         binding.clearCacheRow.setOnClickListener(v -> confirmClearCache());
         binding.resetQuizRow.setOnClickListener(v -> confirmResetQuiz());
@@ -101,6 +102,9 @@ public class MoreFragment extends Fragment {
 
         binding.serverValue.setText(Store.backendUrl());
         binding.themeValue.setText(themeLabel(Store.themeMode()));
+        boolean hasKey = MapTabFragment.hasGoogleMapsKey(requireContext());
+        binding.mapValue.setText(!hasKey ? getString(R.string.map_osm_no_key)
+                : getString(Store.useGoogleMaps() ? R.string.map_google : R.string.map_osm));
         binding.about.setText(getString(R.string.more_about_app, BuildConfig.VERSION_NAME));
         refreshSaved();
         refreshAccount();
@@ -344,6 +348,23 @@ public class MoreFragment extends Fragment {
                     Store.setThemeMode(modes[which]);
                     d.dismiss();
                     AppCompatDelegate.setDefaultNightMode(modes[which]);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void chooseMap() {
+        if (!MapTabFragment.hasGoogleMapsKey(requireContext())) {
+            Toast.makeText(requireContext(), R.string.map_google_needs_key, Toast.LENGTH_LONG).show();
+            return;
+        }
+        String[] labels = {getString(R.string.map_google), getString(R.string.map_osm)};
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.settings_map)
+                .setSingleChoiceItems(labels, Store.useGoogleMaps() ? 0 : 1, (d, which) -> {
+                    Store.setUseGoogleMaps(which == 0);
+                    d.dismiss();
+                    refresh();
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();

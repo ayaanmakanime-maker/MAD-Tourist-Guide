@@ -119,5 +119,5 @@ Then on a device: Explore should show **Live · Google Maps**, the Chat header *
 | "Google Places rejected the server key" | Places API (New) not enabled, billing not linked, or the key's API/IP restrictions exclude the server. |
 | Map shows OpenStreetMap instead of Google Maps | Expected without `MAPS_API_KEY`. Add the key to `local.properties` and rebuild to switch to Google Maps. |
 | OpenStreetMap is blank/grey | The emulator/phone has no internet access (tiles are downloaded). |
-| Map is grey | Android key restriction doesn't match the package name/SHA-1, or Maps SDK for Android isn't enabled. |
+| Google map is grey | The key's project has no billing, Maps SDK for Android isn't enabled, or the key restriction doesn't match the package name/SHA-1. Switch to OpenStreetMap in More › Settings › Map style. |
 | "Accounts aren't set up in this build" | `app/google-services.json` missing; add it and rebuild. |

@@ -375,6 +375,26 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/mapRow"
+                    style="@style/SettingsRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_map"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/mapValue"
+                        style="@style/Text.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/serverRow"
                     style="@style/SettingsRow"
                     android:layout_width="match_parent"
