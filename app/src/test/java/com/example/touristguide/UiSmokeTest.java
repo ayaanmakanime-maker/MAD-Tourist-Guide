@@ -125,6 +125,8 @@ public class UiSmokeTest {
     @Test
     public void mapWithoutGoogleKeyUsesOpenStreetMap() {
         MainActivity a = launchMain();
+        // Only meaningful for builds without MAPS_API_KEY (with a key, Google Maps is used instead).
+        org.junit.Assume.assumeFalse(MapTabFragment.hasGoogleMapsKey(a));
         selectTab(a, R.id.nav_map);
         assertEquals(View.VISIBLE, a.findViewById(R.id.osmMap).getVisibility());
         assertEquals(View.GONE, a.findViewById(R.id.map).getVisibility());

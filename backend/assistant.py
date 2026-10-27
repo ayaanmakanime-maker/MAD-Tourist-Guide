@@ -163,13 +163,19 @@ def parse_gemini(data: dict) -> dict:
 
 
 _INLINE_BULLET = re.compile(r"([:.!?])\s+-\s+(?=\S)")
+_INLINE_NUMBER = re.compile(r"([:,.;!?])\s+(\d{1,2})[.)]\s+(?=[A-Z])")
 
 
 def format_reply(text: str) -> str:
-    """Models sometimes write lists inline ("Try: - A. - B."). Put each bullet on its own line."""
-    if "\n- " in text or len(_INLINE_BULLET.findall(text)) < 2:
+    """Models sometimes write lists inline ("Try: - A. - B." or "Try: 1. A, 2. B").
+    Put each item on its own line."""
+    if "\n" in text:
         return text
-    return _INLINE_BULLET.sub(lambda m: m.group(1) + "\n- ", text)
+    if len(_INLINE_BULLET.findall(text)) >= 2:
+        return _INLINE_BULLET.sub(lambda m: m.group(1) + "\n- ", text)
+    if len(_INLINE_NUMBER.findall(text)) >= 2:
+        return _INLINE_NUMBER.sub(lambda m: m.group(1) + "\n" + m.group(2) + ". ", text)
+    return text
 
 
 def grounded_places(place_ids: list[str], candidates: list[dict], limit: int = 6) -> list[dict]:
