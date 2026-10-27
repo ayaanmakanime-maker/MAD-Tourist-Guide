@@ -6,28 +6,26 @@
     android:orientation="vertical">
 
     <TextView
+        style="@style/Text.Section"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="@string/saved_title"
-        android:textColor="@color/forest"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:text="@string/saved_title" />
 
     <TextView
         android:id="@+id/savedEmpty"
+        style="@style/Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="@string/saved_empty"
-        android:textColor="@color/text_secondary"
-        android:textSize="13sp" />
+        android:textColor="@color/text_secondary" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/savedList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:clipToPadding="false"
         android:orientation="horizontal"
         android:paddingStart="2dp"

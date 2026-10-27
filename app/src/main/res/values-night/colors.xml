@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#101513</color>
+    <color name="surface">#1A2220</color>
+    <color name="surface_variant">#23302B</color>
+    <color name="hero_bg">#183129</color>
+    <color name="on_hero">#FFFFFF</color>
+    <color name="hero_body">#C9D6CF</color>
+    <color name="gold">#E3C77A</color>
+    <color name="title">#BFE3D6</color>
+    <color name="accent">#5CC9B8</color>
+    <color name="on_accent">#00201B</color>
+    <color name="accent_text">#6FD6C5</color>
+    <color name="text_primary">#E4EBE7</color>
+    <color name="text_secondary">#AAB9B2</color>
+    <color name="text_hint">#8D9C96</color>
+    <color name="outline">#8C9C95</color>
+    <color name="stroke_soft">#34433D</color>
+    <color name="error">#F2B8B5</color>
+    <color name="success">#7FD8A6</color>
+    <color name="warning_bg">#3A3120</color>
+    <color name="warning_text">#F3D58C</color>
+    <color name="skeleton">#28322E</color>
+    <color name="user_bubble">#2C5A4F</color>
+</resources>

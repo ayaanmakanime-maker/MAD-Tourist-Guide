@@ -1,0 +1,32 @@
+rules_version = '2';
+
+// Tourist Guide cloud backup: one document per signed-in user at users/{uid}.
+// Each user can read/write only their own document; everything else is denied.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      function validBackup() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['schemaVersion', 'updatedAt', 'favourites', 'itinerary', 'budget', 'quiz'])
+          && d.schemaVersion is int
+          && d.updatedAt == request.time
+          && d.favourites is string && d.favourites.size() < 300000
+          && d.itinerary is string && d.itinerary.size() < 300000
+          && d.budget is string && d.budget.size() < 10000
+          && d.quiz is string && d.quiz.size() < 20000;
+      }
+
+      allow read, delete: if isOwner();
+      allow create, update: if isOwner() && validBackup();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

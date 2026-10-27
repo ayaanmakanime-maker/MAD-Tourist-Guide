@@ -1,285 +1,177 @@
 package com.example.touristguide;
 
-import android.os.Handler;
-import android.os.Looper;
-
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Calls the Gemini API directly from the app. No backend server is required.
- * The API key is injected at build time from local.properties.
+ * Talks to the backend's grounded travel assistant (POST /chat).
+ *
+ * <p>The Gemini key lives only on the server. The request carries just what the assistant needs:
+ * the selected area (coordinates rounded to ~100 m), the places currently loaded, the trip and the
+ * user's own budget numbers. No account details or device identifiers are sent.</p>
  */
 public final class AiClient {
-    public interface Listener {
-        void onReply(String reply, String mode);
 
-        void onError(String message);
+    public static final int MAX_CONTEXT_PLACES = 25;
+    public static final int MAX_HISTORY = 6;
+
+    public interface Listener {
+        void onReply(Reply reply);
+
+        void onError(BackendClient.ApiError error);
     }
 
-    private static final String ENDPOINT =
-            "https://generativelanguage.googleapis.com/v1beta/models/";
-    private static final String DEFAULT_MODEL = "gemini-3.1-flash-lite";
-    private static final String FALLBACK_MODEL = "gemini-3-flash-preview";
-    private static final String SYSTEM_PROMPT =
-            "You are a careful travel assistant inside a tourist guide app. "
-                    + "The selected city is Mumbai. Give practical, concise itineraries, "
-                    + "ask clarifying questions if needed, and distinguish estimates from "
-                    + "verified facts. Do not invent live opening hours, prices, ratings, or "
-                    + "availability. Encourage users to verify current details from official "
-                    + "sources. Keep safety and accessibility in mind. Answer in the same "
-                    + "language the user writes in. Keep answers under 150 words.";
+    /** A previous chat turn (sent so follow-up questions make sense). */
+    public static final class Turn {
+        public final boolean user;
+        public final String text;
 
-    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
-    private static final Handler MAIN = new Handler(Looper.getMainLooper());
+        public Turn(boolean user, String text) {
+            this.user = user;
+            this.text = text;
+        }
+    }
+
+    public static final class Reply {
+        public final String text;
+        public final boolean needsMoreInfo;
+        /** Places the assistant recommended; all come from the context the app sent or a live search. */
+        public final List<Place> places;
+
+        Reply(String text, boolean needsMoreInfo, List<Place> places) {
+            this.text = text;
+            this.needsMoreInfo = needsMoreInfo;
+            this.places = places;
+        }
+    }
 
     private AiClient() {
     }
 
-    public static void chat(String text, Listener listener) {
-        String key = BuildConfig.GEMINI_API_KEY == null
-                ? ""
-                : BuildConfig.GEMINI_API_KEY.trim();
-        if (key.isEmpty()) {
-            MAIN.post(() -> listener.onError(
-                    "Gemini API key is not configured. Add GEMINI_API_KEY to local.properties and rebuild."));
-            return;
-        }
-
-        String payload = toJson(text);
-        EXECUTOR.execute(() -> {
-            String lastError = null;
-            for (String model : models()) {
-                Result result = attempt(model, key, payload);
-                if (result.reply != null) {
-                    String reply = result.reply;
-                    MAIN.post(() -> listener.onReply(reply, "gemini"));
-                    return;
-                }
-                lastError = result.error;
-                if (!result.retryable) break;
+    public static void chat(JSONObject request, Listener listener) {
+        BackendClient.chat(request, new BackendClient.Callback<JSONObject>() {
+            @Override
+            public void onSuccess(JSONObject value) {
+                Reply reply = parseReply(value);
+                PlaceRepository.remember(reply.places);
+                listener.onReply(reply);
             }
-            String error = lastError == null ? "Gemini request failed." : lastError;
-            MAIN.post(() -> listener.onError(error));
+
+            @Override
+            public void onError(BackendClient.ApiError error) {
+                listener.onError(error);
+            }
         });
     }
 
-    /**
-     * The configured model first, then a currently-working fallback. Retired
-     * models, rate limits and provider 5xx responses automatically move on to
-     * the next entry.
-     */
-    private static String[] models() {
-        String primary = BuildConfig.GEMINI_MODEL == null || BuildConfig.GEMINI_MODEL.trim().isEmpty()
-                ? DEFAULT_MODEL
-                : BuildConfig.GEMINI_MODEL.trim();
-        Set<String> models = new LinkedHashSet<>();
-        models.add(primary);
-        models.add(FALLBACK_MODEL);
-        models.add(DEFAULT_MODEL);
-        return models.toArray(new String[0]);
-    }
-
-    private static Result attempt(String model, String key, String payload) {
-        HttpURLConnection conn = null;
+    /** Builds the /chat request body. Pure (no Android APIs) so it is unit tested. */
+    public static JSONObject buildRequest(String message, LocationRepository.Selected location,
+                                          List<Place> places, Place selectedPlace, Itinerary plan,
+                                          BudgetCalculator.Inputs budget, List<Turn> history) {
+        JSONObject o = new JSONObject();
         try {
-            URL url = new URL(ENDPOINT + model + ":generateContent");
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setConnectTimeout(10000);
-            conn.setReadTimeout(25000);
-            conn.setDoOutput(true);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestProperty("x-goog-api-key", key);
-
-            byte[] bytes = payload.getBytes(StandardCharsets.UTF_8);
-            conn.setFixedLengthStreamingMode(bytes.length);
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(bytes);
+            o.put("message", message.length() > 1500 ? message.substring(0, 1500) : message);
+            o.put("city", "Mumbai");
+            if (location != null && location.kind != LocationRepository.Kind.DEFAULT) {
+                JSONObject loc = new JSONObject();
+                loc.put("lat", round3(location.lat));
+                loc.put("lng", round3(location.lng));
+                loc.put("label", location.label);
+                o.put("location", loc);
             }
+            double lat = location == null ? Double.NaN : location.lat;
+            double lng = location == null ? Double.NaN : location.lng;
+            if (selectedPlace != null) o.put("selected_place", contextPlace(selectedPlace, lat, lng));
 
-            int code = conn.getResponseCode();
-            if (code == 200) {
-                JSONObject body = new JSONObject(read(conn.getInputStream()));
-                Reply reply = parseReply(body);
-                if (reply.error != null) {
-                    return new Result(null, reply.error, false);
+            JSONArray arr = new JSONArray();
+            for (Place p : places) {
+                if (arr.length() >= MAX_CONTEXT_PLACES) break;
+                arr.put(contextPlace(p, lat, lng));
+            }
+            o.put("places", arr);
+
+            JSONArray stops = new JSONArray();
+            if (plan != null) {
+                for (Itinerary.Stop s : plan.stops()) {
+                    if (stops.length() >= 40) break;
+                    stops.put(new JSONObject().put("id", s.id()).put("name", s.place.name).put("day", s.day));
                 }
-                return new Result(reply.text, null, false);
+            }
+            o.put("plan", stops);
+
+            if (budget != null) {
+                BudgetCalculator.Summary sum = BudgetCalculator.calculate(budget);
+                o.put("budget", new JSONObject()
+                        .put("total", budget.total)
+                        .put("days", budget.days)
+                        .put("planned", sum.planned)
+                        .put("remaining", sum.remaining)
+                        .put("food", budget.food));
             }
 
-            String detail = errorDetail(conn, code);
-            boolean retryable = code == 404 || code == 429 || code >= 500;
-            return new Result(null, detail, retryable);
-        } catch (UnknownHostException e) {
-            return new Result(null,
-                    "Can't reach Gemini. Check your internet connection and try again.", false);
-        } catch (SocketTimeoutException e) {
-            return new Result(null,
-                    "Gemini took too long to respond. Please try again.", true);
-        } catch (Exception e) {
-            String reason = e.getMessage() == null || e.getMessage().trim().isEmpty()
-                    ? "Please try again."
-                    : e.getMessage();
-            return new Result(null, "Gemini request failed. " + reason, false);
-        } finally {
-            if (conn != null) conn.disconnect();
+            JSONArray turns = new JSONArray();
+            int start = Math.max(0, history.size() - MAX_HISTORY);
+            for (int i = start; i < history.size(); i++) {
+                Turn t = history.get(i);
+                String text = t.text.length() > 2000 ? t.text.substring(0, 2000) : t.text;
+                if (!text.trim().isEmpty()) {
+                    turns.put(new JSONObject().put("role", t.user ? "user" : "assistant").put("text", text));
+                }
+            }
+            o.put("history", turns);
+        } catch (JSONException ignored) {
+            // Only plain values are added.
         }
+        return o;
     }
 
-    private static Reply parseReply(JSONObject body) {
-        if (body.has("error")) {
-            JSONObject error = body.optJSONObject("error");
-            String message = error == null
-                    ? "Gemini request failed."
-                    : error.optString("message", "Gemini request failed.");
-            return new Reply(null, message);
+    private static JSONObject contextPlace(Place p, double lat, double lng) throws JSONException {
+        JSONObject o = new JSONObject();
+        o.put("id", p.id);
+        o.put("name", p.name);
+        if (!p.category.isEmpty()) o.put("category_label", p.category);
+        if (!p.area.isEmpty()) o.put("address", p.area);
+        o.put("lat", round3(p.lat));
+        o.put("lng", round3(p.lng));
+        if (p.rating != null) o.put("rating", p.rating);
+        if (p.ratingCount != null) o.put("rating_count", p.ratingCount);
+        if (p.priceLevel != null) o.put("price_level", p.priceLevel);
+        if (p.priceStart != null || p.priceEnd != null) {
+            JSONObject range = new JSONObject();
+            if (p.priceStart != null) range.put("start", p.priceStart);
+            if (p.priceEnd != null) range.put("end", p.priceEnd);
+            if (p.priceCurrency != null) range.put("currency", p.priceCurrency);
+            o.put("price_range", range);
         }
+        if (p.openNow != null) o.put("open_now", p.openNow);
+        // Rounded to 100 m: exact distances to many places would reveal the precise position.
+        if (!Double.isNaN(lat)) o.put("distance_m", Math.round(GeoUtils.distanceMeters(lat, lng, p.lat, p.lng) / 100d) * 100);
+        o.put("is_food", p.food);
+        o.put("source", p.isLive() ? "live" : "curated");
+        return o;
+    }
 
-        JSONArray candidates = body.optJSONArray("candidates");
-        if (candidates == null || candidates.length() == 0) {
-            JSONObject feedback = body.optJSONObject("promptFeedback");
-            String block = feedback == null ? "" : feedback.optString("blockReason", "");
-            return new Reply(null, block.isEmpty()
-                    ? "Gemini did not return an answer. Try rephrasing your question."
-                    : "Gemini blocked this request (" + block + "). Try rephrasing it.");
-        }
-
-        JSONObject candidate = candidates.optJSONObject(0);
-        if (candidate == null) {
-            return new Reply(null, "Gemini did not return an answer. Try again.");
-        }
-
-        JSONObject content = candidate.optJSONObject("content");
-        JSONArray parts = content == null ? null : content.optJSONArray("parts");
-        StringBuilder text = new StringBuilder();
-        if (parts != null) {
-            for (int i = 0; i < parts.length(); i++) {
-                JSONObject part = parts.optJSONObject(i);
-                if (part == null || part.optBoolean("thought", false)) continue;
-                String piece = part.optString("text", "");
-                if (piece.isEmpty()) continue;
-                if (text.length() > 0) text.append('\n');
-                text.append(piece);
+    static Reply parseReply(JSONObject o) {
+        List<Place> places = new ArrayList<>();
+        JSONArray arr = o.optJSONArray("places");
+        for (int i = 0; arr != null && i < arr.length(); i++) {
+            JSONObject item = arr.optJSONObject(i);
+            if (item == null) continue;
+            Place p = Place.fromBackendJson(item);
+            // Curated/known places echo back by id: prefer our richer local copy.
+            if (p != null) {
+                Place known = PlaceRepository.get(p.id);
+                places.add(known != null ? known : p);
             }
         }
-
-        String result = text.toString().trim();
-        if (result.isEmpty()) {
-            String finish = candidate.optString("finishReason", "");
-            if ("SAFETY".equals(finish) || "RECITATION".equals(finish)
-                    || "BLOCKLIST".equals(finish) || "PROHIBITED_CONTENT".equals(finish)) {
-                return new Reply(null, "Gemini blocked this response. Try rephrasing your question.");
-            }
-            return new Reply(null, "Gemini returned an empty answer. Try again.");
-        }
-        return new Reply(result, null);
+        return new Reply(o.optString("reply", "").trim(), o.optBoolean("needs_more_info", false), places);
     }
 
-    private static String errorDetail(HttpURLConnection conn, int code) {
-        String provider = "";
-        try {
-            InputStream err = conn.getErrorStream();
-            if (err != null) {
-                JSONObject body = new JSONObject(read(err));
-                JSONObject error = body.optJSONObject("error");
-                if (error != null) provider = error.optString("message", "");
-            }
-        } catch (Exception ignored) {
-            // Fall back to the HTTP status message below.
-        }
-
-        String prefix;
-        if (code == 400) {
-            prefix = "Gemini rejected the request.";
-        } else if (code == 401 || code == 403) {
-            prefix = "Gemini API key is invalid or has no access.";
-        } else if (code == 429) {
-            prefix = "Gemini rate limit reached. Try again in a minute.";
-        } else if (code >= 500) {
-            prefix = "Gemini is busy right now. Try again.";
-        } else {
-            prefix = "Gemini returned HTTP " + code + ".";
-        }
-
-        if (provider.isEmpty()) return prefix;
-        return prefix + " " + shorten(provider, 160);
-    }
-
-    private static String shorten(String value, int max) {
-        String trimmed = value.trim();
-        return trimmed.length() <= max ? trimmed : trimmed.substring(0, max) + "...";
-    }
-
-    private static String toJson(String text) {
-        try {
-            JSONObject system = new JSONObject();
-            system.put("parts", new JSONArray().put(new JSONObject().put("text", SYSTEM_PROMPT)));
-
-            JSONObject content = new JSONObject();
-            content.put("role", "user");
-            content.put("parts", new JSONArray().put(new JSONObject().put("text", text)));
-
-            JSONObject generation = new JSONObject();
-            generation.put("temperature", 0.5);
-            generation.put("maxOutputTokens", 700);
-
-            JSONObject payload = new JSONObject();
-            payload.put("system_instruction", system);
-            payload.put("contents", new JSONArray().put(content));
-            payload.put("generationConfig", generation);
-            return payload.toString();
-        } catch (Exception e) {
-            return "{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"\"}]}]}";
-        }
-    }
-
-    private static String read(InputStream in) throws Exception {
-        if (in == null) return "";
-        try (InputStream stream = in;
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            byte[] buffer = new byte[4096];
-            int count;
-            while ((count = stream.read(buffer)) > 0) {
-                out.write(buffer, 0, count);
-            }
-            return new String(out.toByteArray(), StandardCharsets.UTF_8);
-        }
-    }
-
-    private static final class Reply {
-        final String text;
-        final String error;
-
-        Reply(String text, String error) {
-            this.text = text;
-            this.error = error;
-        }
-    }
-
-    private static final class Result {
-        final String reply;
-        final String error;
-        final boolean retryable;
-
-        Result(String reply, String error, boolean retryable) {
-            this.reply = reply;
-            this.error = error;
-            this.retryable = retryable;
-        }
+    private static double round3(double v) {
+        return Math.round(v * 1000d) / 1000d;
     }
 }

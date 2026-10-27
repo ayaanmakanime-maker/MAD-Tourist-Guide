@@ -1,0 +1,14 @@
+# Copy to local.properties (Android Studio usually creates it with sdk.dir for you).
+# local.properties is gitignored: never commit real keys.
+
+# sdk.dir=C\:\\Users\\you\\AppData\\Local\\Android\\Sdk
+
+# Maps SDK for Android key (embedded map only). Restrict it to "Maps SDK for Android"
+# and to this app's package name + SHA-1 in Google Cloud Console.
+MAPS_API_KEY=
+
+# Where the app reaches the backend. Default (emulator -> your computer): http://10.0.2.2:8000
+# On a real phone use your computer's LAN IP (debug builds only), or an HTTPS URL once deployed.
+# BACKEND_URL=http://10.0.2.2:8000
+
+# NOTE: GEMINI_API_KEY no longer belongs here. Gemini and Places keys live in backend/.env.

@@ -1,28 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="6dp"
-    app:cardBackgroundColor="@color/white"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="2dp">
+    android:clickable="true"
+    android:focusable="true"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="14dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="0dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
 
         <TextView
             android:id="@+id/index"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:background="@drawable/bg_pin_hero"
             android:gravity="center"
-            android:textColor="@color/white"
-            android:textSize="15sp"
+            android:importantForAccessibility="no"
+            android:textColor="@color/on_accent"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -36,26 +41,62 @@
                 android:id="@+id/name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/forest"
+                android:textColor="@color/title"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/meta"
+                style="@style/Text.Label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="@color/teal"
-                android:textSize="12sp" />
+                android:textStyle="normal" />
+
+            <TextView
+                android:id="@+id/note"
+                style="@style/Text.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textStyle="italic"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/cost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp"
+                android:visibility="gone" />
         </LinearLayout>
 
         <ImageButton
-            android:id="@+id/delete"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:id="@+id/up"
+            android:layout_width="44dp"
+            android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/remove"
-            android:src="@drawable/ic_delete"
+            android:contentDescription="@string/plan_move_up"
+            android:src="@drawable/ic_arrow_up"
+            app:tint="@color/text_secondary" />
+
+        <ImageButton
+            android:id="@+id/down"
+            android:layout_width="44dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/plan_move_down"
+            android:src="@drawable/ic_arrow_down"
+            app:tint="@color/text_secondary" />
+
+        <ImageButton
+            android:id="@+id/more"
+            android:layout_width="44dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/plan_more_actions"
+            android:src="@drawable/ic_more_vert"
             app:tint="@color/text_secondary" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -1,15 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="cream">#F7F5DF</color>
-    <color name="forest">#1D3933</color>
-    <color name="teal">#159C8C</color>
-    <color name="gold">#DDBB63</color>
-    <color name="pale">#E5F1EC</color>
-    <color name="white">#FFFFFF</color>
-    <color name="text_primary">#21302B</color>
-    <color name="text_secondary">#5D6D66</color>
-    <color name="text_hint">#8FA39B</color>
-    <color name="stroke_soft">#D8E2DA</color>
+    <!-- Semantic colours. values-night/colors.xml overrides them for dark mode. -->
+    <color name="bg">#F7F5DF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#E5F1EC</color>
+    <color name="hero_bg">#1D3933</color>
+    <color name="on_hero">#FFFFFF</color>
     <color name="hero_body">#D7E1D9</color>
+    <color name="gold">#DDBB63</color>
+    <color name="title">#1D3933</color>
+    <!-- Darker than the original teal so white button text meets WCAG AA (4.5:1). -->
+    <color name="accent">#0F7A6E</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="accent_text">#0F7A6E</color>
+    <color name="text_primary">#21302B</color>
+    <color name="text_secondary">#56655E</color>
+    <color name="text_hint">#6B7F77</color>
+    <color name="outline">#7A8B84</color>
+    <color name="stroke_soft">#D8E2DA</color>
     <color name="error">#B3261E</color>
+    <color name="success">#1E7D4F</color>
+    <color name="warning_bg">#FFF4D6</color>
+    <color name="warning_text">#5E4500</color>
+    <color name="skeleton">#E3E8E2</color>
+    <color name="user_bubble">#1D3933</color>
+
+    <!-- Brand colours that do not change in dark mode (launcher icon). -->
+    <color name="forest">#1D3933</color>
 </resources>

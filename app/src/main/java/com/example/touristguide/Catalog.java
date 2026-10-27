@@ -1,12 +1,14 @@
 package com.example.touristguide;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
+/**
+ * The curated offline guide. It is used when live Google Places results are unavailable and is
+ * always labelled "Curated guide" in the UI so it is never mistaken for live data.
+ * Coordinates are approximate; prices/hours are indicative or deliberately left unknown.
+ */
 public final class Catalog {
-    public static final String[] FILTERS = {"All", "Historic", "Beach", "Museum", "Shopping", "Nature"};
 
     public static final List<Place> PLACES = Arrays.asList(
             new Place("Gateway of India", "Historic landmark", "Colaba",
@@ -50,34 +52,40 @@ public final class Catalog {
                     "👕", 30, 0, 18.9856, 72.8305, "Historic"),
             new Place("Sanjay Gandhi National Park", "National park", "Borivali East",
                     "A large forest park within city limits with walking trails and heritage caves inside. Carry water and follow park rules.",
-                    "🦌", 240, 85, 19.2148, 72.9103, "Nature"));
+                    "🦌", 240, 85, 19.2148, 72.9103, "Nature"),
+
+            // Curated food stops. Menus, prices and opening hours are intentionally not stored.
+            new Place("Leopold Cafe", "Café & restaurant", "Colaba",
+                    "A Colaba Causeway landmark dating back to 1871 and a long-time favourite with travellers. Check current hours and prices locally.",
+                    "☕", 60, Place.UNKNOWN, 18.9227, 72.8317, "Food", "Cafe"),
+            new Place("Bademiya", "Street-food kebabs", "Colaba",
+                    "A famous late-evening kebab and roll stall in the lanes behind the Taj Mahal Palace hotel. Check current hours locally.",
+                    "🍢", 45, Place.UNKNOWN, 18.9232, 72.8322, "Food"),
+            new Place("Britannia & Co.", "Parsi restaurant", "Ballard Estate",
+                    "A historic Parsi café-restaurant from 1923, known for its berry pulao. Opening days and hours are limited, so confirm before going.",
+                    "🍛", 60, Place.UNKNOWN, 18.9346, 72.8404, "Food"),
+            new Place("Kyani & Co.", "Irani café", "Marine Lines",
+                    "One of Mumbai's oldest Irani cafés (since 1904), known for bun maska and chai. Check current hours locally.",
+                    "🫖", 45, Place.UNKNOWN, 18.9440, 72.8290, "Food", "Cafe"),
+            new Place("Swati Snacks", "Gujarati vegetarian snacks", "Tardeo",
+                    "A popular vegetarian restaurant serving Gujarati and Mumbai snacks. Queues are common at peak times.",
+                    "🥟", 60, Place.UNKNOWN, 18.9701, 72.8140, "Food"));
 
     private Catalog() {
     }
 
-    public static List<Place> filtered(String query, String filter) {
-        String q = query.trim().toLowerCase(Locale.ROOT);
-        List<Place> out = new ArrayList<>();
+    public static Place byId(String id) {
         for (Place p : PLACES) {
-            boolean text = q.isEmpty()
-                    || p.name.toLowerCase(Locale.ROOT).contains(q)
-                    || p.category.toLowerCase(Locale.ROOT).contains(q)
-                    || p.area.toLowerCase(Locale.ROOT).contains(q);
-            boolean tag = filter.equals("All") || p.tags.contains(filter);
-            if (text && tag) out.add(p);
+            if (p.id.equals(id)) return p;
         }
-        return out;
+        return null;
     }
 
-    public static int indexOf(String name) {
-        for (int i = 0; i < PLACES.size(); i++) {
-            if (PLACES.get(i).name.equals(name)) return i;
-        }
-        return -1;
-    }
-
+    /** Lookup used to migrate favourites/plans saved by older versions (which stored names). */
     public static Place byName(String name) {
-        int i = indexOf(name);
-        return i < 0 ? null : PLACES.get(i);
+        for (Place p : PLACES) {
+            if (p.name.equals(name)) return p;
+        }
+        return null;
     }
 }

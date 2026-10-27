@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/cream"
+    android:background="@color/bg"
     android:orientation="vertical">
 
     <LinearLayout
@@ -13,7 +13,7 @@
         android:orientation="horizontal"
         android:paddingStart="16dp"
         android:paddingTop="16dp"
-        android:paddingEnd="16dp">
+        android:paddingEnd="8dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -22,22 +22,29 @@
             android:orientation="vertical">
 
             <TextView
+                style="@style/Text.Screen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/chat_title"
-                android:textColor="@color/forest"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:text="@string/chat_title" />
 
             <TextView
                 android:id="@+id/serverState"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textSize="11sp"
+                android:accessibilityLiveRegion="polite"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/clearChat"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/chat_clear" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -46,19 +53,31 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:padding="12dp"
-        app:stackFromEnd="true"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        android:padding="12dp" />
 
-    <TextView
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
+        android:clipToPadding="false"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:scrollbars="none">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/suggestions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleLine="true" />
+    </HorizontalScrollView>
+
+    <TextView
+        android:id="@+id/contextLine"
+        style="@style/Text.Caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp"
         android:paddingTop="4dp"
-        android:text="@string/chat_disclaimer"
-        android:textColor="@color/text_secondary"
+        android:paddingEnd="16dp"
         android:textSize="11sp" />
 
     <LinearLayout
@@ -77,8 +96,11 @@
             android:hint="@string/chat_input_hint"
             android:importantForAutofill="no"
             android:inputType="textMultiLine|textCapSentences"
+            android:maxLength="1500"
             android:maxLines="4"
+            android:minHeight="48dp"
             android:padding="14dp"
+            android:textColor="@color/text_primary"
             android:textColorHint="@color/text_hint"
             android:textSize="14sp" />
 
@@ -90,6 +112,17 @@
             android:background="@drawable/bg_pin_hero"
             android:contentDescription="@string/chat_desc_send"
             android:src="@drawable/ic_send"
-            app:tint="@color/white" />
+            app:tint="@color/on_accent" />
     </LinearLayout>
+
+    <TextView
+        style="@style/Text.Caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="6dp"
+        android:text="@string/chat_disclaimer"
+        android:textSize="11sp" />
 </LinearLayout>

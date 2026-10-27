@@ -1,4 +1,4 @@
-# Gradle
+# Gradle / build
 .gradle/
 build/
 app/build/
@@ -8,16 +8,22 @@ app/build/
 *.iml
 .vscode/
 
-# Android Studio must generate this with your SDK path; never commit it
+# Machine-specific; holds your SDK path and API keys. Never commit it.
 local.properties
 
-# Local credentials
+# Firebase client config for your own project (keep it out of public repos).
+app/google-services.json
+
+# Backend secrets and Python artefacts
 backend/.env
 backend/.venv/
-
-# Python
 __pycache__/
 *.pyc
+.pytest_cache/
+
+# Built APKs
+*.apk
+*.aab
 
 # OS
 .DS_Store

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/cream"
+    android:background="@color/bg"
     android:clipToPadding="false"
     android:paddingBottom="24dp">
 
@@ -15,21 +15,95 @@
         android:paddingEnd="16dp">
 
         <TextView
+            style="@style/Text.Screen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingTop="18dp"
-            android:text="@string/more_title"
-            android:textColor="@color/forest"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:text="@string/more_title" />
 
+        <!-- Account (optional; guest mode is the default) -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/accountTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/title"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/accountBody"
+                    style="@style/Text.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/text_secondary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/accountPrimary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:minHeight="48dp" />
+
+                <LinearLayout
+                    android:id="@+id/accountSignedInActions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/accountRestore"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:minHeight="48dp"
+                        android:text="@string/account_restore" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/accountSignOut"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:minHeight="48dp"
+                        android:text="@string/account_sign_out" />
+                </LinearLayout>
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/accountProgress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:indeterminate="true"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Explorer stats & badges (from the original app) -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="@color/forest"
+            app:cardBackgroundColor="@color/hero_bg"
             app:cardCornerRadius="24dp"
-            app:cardElevation="0dp">
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -41,8 +115,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/profile_name_fmt"
-                    android:textColor="@color/white"
-                    android:textSize="21sp"
+                    android:textColor="@color/on_hero"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -62,30 +136,30 @@
                     android:orientation="horizontal">
 
                     <LinearLayout
+                        android:id="@+id/badgeCurator"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_badge"
-                        android:backgroundTint="#00000000"
+                        android:focusable="true"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="8dp">
 
                         <TextView
                             android:id="@+id/badgeIconCurator"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:importantForAccessibility="no"
                             android:text="@string/badge_curator_emoji"
                             android:textSize="22sp" />
 
                         <TextView
-                            android:id="@+id/badgeNameCurator"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/badge_curator_name"
-                            android:textColor="@color/white"
+                            android:textColor="@color/on_hero"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -94,35 +168,36 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
+                            android:gravity="center"
                             android:textColor="@color/hero_body"
                             android:textSize="11sp" />
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/badgePlanner"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
+                        android:layout_marginHorizontal="4dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_badge"
-                        android:backgroundTint="#00000000"
+                        android:focusable="true"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="8dp">
 
                         <TextView
                             android:id="@+id/badgeIconPlanner"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:importantForAccessibility="no"
                             android:text="@string/badge_planner_emoji"
                             android:textSize="22sp" />
 
                         <TextView
-                            android:id="@+id/badgeNamePlanner"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/badge_planner_name"
-                            android:textColor="@color/white"
+                            android:textColor="@color/on_hero"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -131,6 +206,45 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
+                            android:gravity="center"
+                            android:textColor="@color/hero_body"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/badgeQuiz"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:id="@+id/badgeIconQuiz"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:importantForAccessibility="no"
+                            android:text="@string/badge_quiz_emoji"
+                            android:textSize="22sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/badge_quiz_name"
+                            android:textColor="@color/on_hero"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/badgeStateQuiz"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:gravity="center"
                             android:textColor="@color/hero_body"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -142,14 +256,42 @@
             android:id="@+id/savedSection"
             layout="@layout/partial_saved_section" />
 
+        <!-- Quick actions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/findFood"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:text="@string/more_find_food"
+                app:icon="@drawable/ic_restaurant" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/playQuiz"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:text="@string/quiz_title"
+                app:icon="@drawable/ic_quiz" />
+        </LinearLayout>
+
         <TextView
+            style="@style/Text.Section"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/personality_title"
-            android:textColor="@color/forest"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:text="@string/personality_title" />
 
         <LinearLayout
             android:id="@+id/personalityList"
@@ -158,133 +300,166 @@
             android:orientation="vertical" />
 
         <TextView
+            style="@style/Text.Section"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/more_food_title"
-            android:textColor="@color/forest"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:text="@string/more_city_title" />
 
         <com.google.android.material.card.MaterialCardView
+            style="@style/Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="2dp">
+            app:strokeWidth="0dp">
 
             <TextView
+                style="@style/Text.Body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
-                android:lineSpacingExtra="3dp"
-                android:text="@string/more_food_body"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp" />
+                android:text="@string/more_city_body" />
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Settings -->
         <TextView
+            style="@style/Text.Section"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/more_city_title"
-            android:textColor="@color/forest"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:text="@string/more_settings_title" />
 
         <com.google.android.material.card.MaterialCardView
+            style="@style/Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="2dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:lineSpacingExtra="3dp"
-                android:padding="16dp"
-                android:text="@string/more_city_body"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp" />
-        </com.google.android.material.card.MaterialCardView>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/more_settings_title"
-            android:textColor="@color/forest"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/serverRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="2dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
+                android:orientation="vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@string/settings_ai_server"
-                    android:src="@drawable/ic_link"
-                    app:tint="@color/teal" />
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/liveSwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="@string/settings_live_places"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:id="@+id/themeRow"
+                    style="@style/SettingsRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_theme"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/themeValue"
+                        style="@style/Text.Caption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/serverRow"
+                    style="@style/SettingsRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/settings_ai_server"
-                        android:textColor="@color/forest"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
 
                     <TextView
                         android:id="@+id/serverValue"
+                        style="@style/Text.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/clearCacheRow"
+                    style="@style/SettingsRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_clear_cache"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        style="@style/Text.Caption"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:text="@string/settings_clear_cache_body" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/resetQuizRow"
+                    style="@style/SettingsRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_reset_quiz"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
+            style="@style/Text.Section"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/more_privacy_title" />
+
+        <TextView
+            style="@style/Text.Caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:lineSpacingExtra="2dp"
+            android:text="@string/more_privacy_body" />
+
+        <TextView
+            style="@style/Text.Caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:gravity="center"
-            android:text="@string/detail_note"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
+            android:text="@string/detail_note" />
 
         <TextView
             android:id="@+id/about"
+            style="@style/Text.Caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:gravity="center"
-            android:textColor="@color/text_hint"
             android:textSize="11sp" />
     </LinearLayout>
 </ScrollView>

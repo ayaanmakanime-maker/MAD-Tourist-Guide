@@ -1,66 +1,57 @@
-# Tourist Guide MAD — Android App
+# Tourist Guide MAD — AI-powered Mumbai travel companion
 
-A native Android app for exploring and planning trips around Mumbai: a searchable attraction catalog, an embedded Google Map with pins and live location, a trip planner with budget/time estimates, saved favourites, and an AI travel assistant powered directly by Gemini. Java + native Android Views (Material 3), no third-party UI frameworks.
+A native Android app (Java, Views, Material 3, ViewBinding) for exploring Mumbai: live nearby attractions, restaurants and cafés from Google Places, an embedded map, a day-by-day trip planner, a manual budget planner, a Mumbai quiz, and an AI travel assistant (Gemini) grounded in the places and trip on your screen. A small FastAPI backend keeps every provider key off the phone.
+
+The app works without any keys: it falls back to a clearly labelled curated Mumbai guide and offline suggestions.
 
 ## Features
 
-- **Explore tab** — hero banner, live search (filters as you type, keeps focus), interest filter chips (All / Historic / Beach / Museum / Shopping / Nature), a "Surprise me" button, and an interactive Mumbai mini-quiz with persisted progress.
-- **Map tab** — embedded Google Maps SDK (SupportMapFragment): a pin for every attraction, info window opens the detail sheet, an auto-fitted camera, and a locate-me FAB with runtime location permission. If no Maps API key is configured the tab degrades gracefully to a "open in Google Maps app" panel.
-- **Detail sheet** — bottom sheet per attraction with description, min-visit time, indicative price, area, plus actions: get directions, save/unsave, add to plan.
-- **Plan tab** — ordered itinerary with total time & budget estimates, "reorder by area", clear-all with confirmation dialog, and "open the full day in Maps" (external Maps with waypoints).
-- **Saved places** — horizontal card strip on the More tab; hearts sync everywhere instantly.
-- **Chat tab** — real AI from Gemini, called directly by the app (loading state, timeouts, friendly errors). No backend server to run. If Gemini is unreachable the app falls back to a built-in offline suggestion with a Retry button.
-- **More tab** — explorer profile with earned badges (Local Curator, Trip Planner), travel-personality picks that can be applied as a plan, sample food stops, an offline city guide, and the active Gemini model.
-- Everything user-facing lives in `res/values/strings.xml`; favourites and plan persist across restarts via SharedPreferences.
+| Tab | What it does |
+|---|---|
+| **Explore** | Nearby places around your location or a chosen area. Category chips (Attractions, Restaurants, Cafés, Historic, …), search, radius, sort (relevance/distance/rating), *Open now*, pull-to-refresh, load more. Every list says where its data came from: **Live · Google Maps**, **Saved earlier (not live)** or **Curated guide**. Includes the Mumbai quiz entry. |
+| **Map** | The same places as Explore (one shared repository) plus your plan stops in a different colour. "Show on map" from any screen, "Search this area", locate-me. |
+| **Plan** | Itinerary organised by day: add/remove (with undo), reorder, move between days, notes, your own cost estimates, trip name/dates, navigate a whole day in Google Maps, "order by proximity" (a simple straight-line heuristic, clearly labelled). **Budget** toggle: total, days, food, transport, tickets, shopping, other → planned total, remaining, daily budget, per-day figures, utilisation and an over-budget warning. |
+| **Chat** | Travel assistant via the backend. Sends only your rounded area, loaded places, plan and budget numbers. Food questions trigger a live restaurant search on the server. Recommended places come back as "Add to plan" rows. Offline fallback picks from places already in the app. |
+| **More** | Optional account (Firebase email/password) and manual cloud backup, badges, saved places, travel-personality plans, theme (light/dark/system), live-places switch, server address, clear cached data, reset quiz, privacy notes. |
 
-## What's in the box
+## Project layout
 
 ```
-app/          Android application (Java, Views, Material 3, ViewBinding)
-backend/      Legacy optional FastAPI proxy (not used by the app)
-docs/         Project documentation and test plan
+app/        Android app (com.example.touristguide)
+backend/    FastAPI backend: Places API (New) proxy + grounded Gemini chat
+firebase/   Firestore security rules for the optional cloud backup
+docs/       Setup guide, architecture, test cases, upgrade report
 ```
 
-## Android app setup
+## Quick start
 
-1. Open the `TouristGuideMAD` root folder in Android Studio (JDK 17+), let Gradle sync (first sync needs internet).
-2. Run on an API 24+ emulator or device.
-
-Builds are available via `./gradlew assembleDebug` (wrapper included). Gradle 9.3.1 + AGP 9.1.1, `compileSdk` 36, `targetSdk` 36, `minSdk` 24.
-
-## Embedded map (Google Maps SDK)
-
-The map needs a free key. This project wires it through `local.properties` so **no key is committed**:
-
-1. Get a key: [Google AI Studio / Maps Console](https://console.cloud.google.com/google/maps-apis/overview) — enable **Maps SDK for Android**.
-2. Add one line to `local.properties` in the project root:
-   ```properties
-   MAPS_API_KEY=AIza...your_key...
-   ```
-3. Rebuild. Without a key the Map tab shows a friendly fallback panel instead of a blank map (key is detected at runtime; the placeholder is empty by default).
-
-## Enable the AI assistant
-
-The app calls the Gemini API directly, so there is **no backend server to run**. The key is read from `local.properties` at build time and embedded in the APK.
-
-1. Add these lines to `local.properties` in the project root:
-   ```properties
-   GEMINI_API_KEY=your_gemini_key
-   GEMINI_MODEL=gemini-3.1-flash-lite
-   ```
-2. Rebuild and install:
+1. **Backend** (needed for live places and AI):
    ```bash
-   ./gradlew assembleDebug
-   adb install -r app/build/outputs/apk/debug/app-debug.apk
+   cd backend
+   python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   cp .env.example .env        # then add GEMINI_API_KEY and PLACES_API_KEY
+   uvicorn main:app --host 0.0.0.0 --port 8000
    ```
-3. The Chat tab now works on any Android device with internet access. There is no server address to configure. If the configured model is busy or retired, the app automatically falls back to `gemini-3-flash-preview`.
+   Check http://localhost:8000/health.
+2. **Android**: open this folder in Android Studio (JDK 17+), let Gradle sync, add `MAPS_API_KEY=` to `local.properties` for the embedded map (optional), and run on an emulator (API 24+). The emulator reaches your computer's backend at `http://10.0.2.2:8000` by default. On a phone, set the server address in **More › Settings**.
 
-A ready-to-install standalone APK is also kept at `prebuilt/TouristGuide-debug.apk`.
+Full, step-by-step key and Firebase setup: **[docs/SETUP.md](docs/SETUP.md)**.
 
-**Security note:** because this is a standalone college project, the Gemini key is inside the APK and anyone who has the APK can extract it. That is fine for a local demo, but do not use this pattern for a public production app — use a server-side proxy or Firebase AI Logic with App Check instead.
+## Tests
+
+```bash
+./gradlew testDebugUnitTest                                   # JVM unit + Robolectric UI smoke tests
+cd backend && pip install -r requirements-dev.txt && pytest   # backend tests (providers mocked)
+```
+
+Optional extras: an end-to-end app↔backend contract test, and PNG renders of the screens. See [docs/UPGRADE_REPORT.md](docs/UPGRADE_REPORT.md#tests-and-results).
 
 ## Honest limits
 
-- Attraction names/descriptions are a starter catalogue with indicative "min visit" and price figures — not live listings. Always re-check hours/tickets from official sources (the app says so in-UI too).
-- Meals/travel time are excluded from plan estimates.
-- The AI only answers as well as your Gemini key; when it is unavailable the app clearly labels the response as an offline suggestion.
+- Live data needs the backend plus a Google Cloud project with billing and Places API (New) enabled. Without it you see the curated guide, labelled as such.
+- Curated prices and visit times are indicative. Google price levels are categories, not exact costs, and are labelled that way.
+- "Order by proximity" uses straight-line distance; travel times are not calculated.
+- Login and cloud backup only work after you add your own Firebase configuration (see SETUP.md).
+
+More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md) · [docs/TEST_CASES.md](docs/TEST_CASES.md)

@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:layout_marginEnd="40dp"
+    android:layout_marginBottom="4dp"
     android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/label"
+        style="@style/Text.Label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:textSize="11sp"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/text"
@@ -10,20 +22,25 @@
         android:layout_height="wrap_content"
         android:autoLink="web"
         android:background="@drawable/bg_bubble_bot"
-        android:maxWidth="300dp"
         android:padding="12dp"
         android:textColor="@color/text_primary"
-        android:textColorLink="@color/teal"
+        android:textColorLink="@color/accent_text"
+        android:textIsSelectable="true"
         android:textSize="14sp" />
+
+    <LinearLayout
+        android:id="@+id/places"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/offlineNote"
+        style="@style/Text.Caption"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:maxWidth="300dp"
-        android:text="@string/chat_offline_note"
-        android:textColor="@color/text_secondary"
         android:textSize="11sp"
         android:visibility="gone" />
 
@@ -32,6 +49,7 @@
         style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minHeight="48dp"
         android:text="@string/chat_retry"
         android:visibility="gone" />
 </LinearLayout>
