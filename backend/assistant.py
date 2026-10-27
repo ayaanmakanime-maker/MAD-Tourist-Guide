@@ -162,7 +162,7 @@ def parse_gemini(data: dict) -> dict:
     }
 
 
-_INLINE_BULLET = re.compile(r"([:.!?])\s+-\s+(?=\S)")
+_INLINE_BULLET = re.compile(r"([:.!?)])\s+-\s+(?=\S)")
 _INLINE_NUMBER = re.compile(r"([:,.;!?])\s+(\d{1,2})[.)]\s+(?=[A-Z])")
 
 

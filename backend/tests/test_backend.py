@@ -344,6 +344,10 @@ def test_inline_bullets_are_split_into_lines():
                                             "\n- Lunch at Leopold Cafe.")
     # Prose with a single dash, hyphenated words or an existing list stays unchanged.
     assert assistant.format_reply("A half-day trip - easy.") == "A half-day trip - easy."
+    # Items ending in ")" (as Gemini writes them for restaurants with ratings).
+    rated = "Options: - The Bodhi Cafe (rated 4.3) - Radha Krishna Veg Delight (rated 4.4)"
+    assert assistant.format_reply(rated) == ("Options:\n- The Bodhi Cafe (rated 4.3)"
+                                             "\n- Radha Krishna Veg Delight (rated 4.4)")
     numbered = "Itinerary: 1. Start at the Gateway, 2. Walk to the museum, 3. Lunch at Leopold Cafe."
     assert assistant.format_reply(numbered) == ("Itinerary:\n1. Start at the Gateway,\n2. Walk to the museum,"
                                                 "\n3. Lunch at Leopold Cafe.")
