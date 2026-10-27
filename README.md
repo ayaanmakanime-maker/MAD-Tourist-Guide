@@ -36,7 +36,7 @@ docs/       Setup guide, architecture, test cases, upgrade report
    Check http://localhost:8000/health.
 2. **Android**: open this folder in Android Studio (JDK 17+), let Gradle sync, optionally add `MAPS_API_KEY=` to `local.properties` to use Google Maps instead of the built-in OpenStreetMap map, and run on an emulator (API 24+). The emulator reaches your computer's backend at `http://10.0.2.2:8000` by default. On a phone, set the server address in **More › Settings**.
 
-Full, step-by-step key and Firebase setup: **[docs/SETUP.md](docs/SETUP.md)**.
+Quick key setup (Gemini, Places, Maps): **[API_KEYS_QUICKSTART.md](API_KEYS_QUICKSTART.md)**. Full details incl. Firebase: [docs/SETUP.md](docs/SETUP.md).
 
 ## Tests
 
