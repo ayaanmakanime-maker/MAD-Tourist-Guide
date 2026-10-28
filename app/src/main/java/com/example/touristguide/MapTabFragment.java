@@ -159,7 +159,10 @@ public class MapTabFragment extends Fragment implements OnMapReadyCallback, Plac
     }
 
     private String statusText(PlaceRepository.State s) {
-        String area = LocationRepository.selected().label;
+        LocationRepository.Selected loc = LocationRepository.selected();
+        String area = loc.kind == LocationRepository.Kind.DEVICE && !Float.isNaN(loc.accuracyM)
+                ? getString(R.string.location_accuracy_fmt, loc.label, GeoUtils.formatDistance(Math.max(10, Math.round(loc.accuracyM))))
+                : loc.label;
         switch (s.status) {
             case LOADING:
                 return getString(R.string.map_loading);

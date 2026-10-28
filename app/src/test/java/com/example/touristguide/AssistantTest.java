@@ -100,4 +100,25 @@ public class AssistantTest {
         OfflineAssistant.Suggestion none = OfflineAssistant.suggest("museums", Arrays.asList(), 0, 0);
         assertTrue(none.places.isEmpty());
     }
+
+    @Test
+    public void offlineAssistantUnderstandsBudgetPlanAndTopics() {
+        assertEquals(OfflineAssistant.Intent.BUDGET, OfflineAssistant.detect("How much of my budget is left?"));
+        assertEquals(OfflineAssistant.Intent.MY_PLAN, OfflineAssistant.detect("What's in my plan?"));
+        assertEquals(OfflineAssistant.Intent.DAY_PLAN, OfflineAssistant.detect("Plan a day near Colaba"));
+        // Food questions that mention money are still food questions.
+        assertEquals(OfflineAssistant.Intent.FOOD, OfflineAssistant.detect("Find restaurants under my budget"));
+        assertTrue(OfflineAssistant.suggest("How much budget is left?", Catalog.PLACES, COLABA.lat, COLABA.lng)
+                .places.isEmpty());
+
+        OfflineAssistant.Suggestion beaches = OfflineAssistant.suggest("Any beaches nearby?", Catalog.PLACES,
+                COLABA.lat, COLABA.lng);
+        assertEquals(OfflineAssistant.Intent.SIGHTSEEING, beaches.intent);
+        assertFalse(beaches.places.isEmpty());
+        for (Place p : beaches.places) assertTrue(p.name, p.hasTag("Beach"));
+
+        OfflineAssistant.Suggestion history = OfflineAssistant.suggest("historic places to visit", Catalog.PLACES,
+                COLABA.lat, COLABA.lng);
+        for (Place p : history.places) assertTrue(p.name, p.hasTag("Historic"));
+    }
 }

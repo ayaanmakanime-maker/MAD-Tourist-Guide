@@ -24,8 +24,8 @@ android {
         applicationId = "com.example.touristguide"
         minSdk = 24
         targetSdk = 36
-        versionCode = 4
-        versionName = "3.0"
+        versionCode = 5
+        versionName = "3.1"
 
         // Maps SDK key for the embedded map. Restrict it to "Maps SDK for Android" + this
         // package name and signing SHA-1 in Google Cloud Console.

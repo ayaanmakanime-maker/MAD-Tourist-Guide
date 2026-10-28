@@ -58,6 +58,9 @@ PLACE_FIELDS = [
     "priceRange", "currentOpeningHours", "photos", "googleMapsUri", "businessStatus",
 ]
 SEARCH_FIELD_MASK = ",".join("places." + f for f in PLACE_FIELDS)
+# Area lookup only needs a name, an address and coordinates.
+LOCATE_FIELD_MASK = "places.id,places.displayName,places.formattedAddress,places.location,places.types"
+MUMBAI_CENTRE = (19.0760, 72.8777)
 DETAILS_FIELD_MASK = ",".join(PLACE_FIELDS)
 
 
@@ -233,6 +236,41 @@ async def search_text(client: httpx.AsyncClient, key: str, query: str,
     data = await _send(client, "POST", f"{BASE_URL}/places:searchText",
                        headers=_headers(key, SEARCH_FIELD_MASK + ",nextPageToken"), json=body)
     return normalize_list(data.get("places") or []), data.get("nextPageToken")
+
+
+async def find_locations(client: httpx.AsyncClient, key: str, query: str,
+                         lat: float, lng: float, max_results: int = 5) -> list[dict]:
+    """Candidate locations for an area or landmark typed by the user, biased to (lat, lng)."""
+    body = {
+        "textQuery": query,
+        "pageSize": max(1, min(10, max_results)),
+        "languageCode": "en",
+        "regionCode": "IN",
+        "locationBias": _circle(lat, lng, 50000),  # the largest bias radius Places allows
+    }
+    data = await _send(client, "POST", f"{BASE_URL}/places:searchText",
+                       headers=_headers(key, LOCATE_FIELD_MASK), json=body)
+    out: list[dict] = []
+    seen: set[str] = set()
+    for raw in data.get("places") or []:
+        if not isinstance(raw, dict):
+            continue
+        location = raw.get("location") or {}
+        name = (raw.get("displayName") or {}).get("text")
+        p_lat, p_lng = location.get("latitude"), location.get("longitude")
+        place_id = raw.get("id")
+        if not name or p_lat is None or p_lng is None or place_id in seen:
+            continue
+        seen.add(place_id)
+        out.append({
+            "id": place_id,
+            "name": name,
+            "address": raw.get("formattedAddress") or "",
+            "lat": float(p_lat),
+            "lng": float(p_lng),
+            "types": [t for t in raw.get("types") or [] if isinstance(t, str)],
+        })
+    return out
 
 
 async def get_details(client: httpx.AsyncClient, key: str, place_id: str) -> dict:

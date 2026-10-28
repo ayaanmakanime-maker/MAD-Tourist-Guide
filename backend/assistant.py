@@ -236,18 +236,34 @@ def grounded_places(place_ids: list[str], candidates: list[dict], limit: int = 6
     return out
 
 
+_KEYLIKE = re.compile(r"(api_key:)?(AIza[0-9A-Za-z_-]{10,}|AQ\.[0-9A-Za-z_.-]{10,})")
+
+
+def provider_reason(response: httpx.Response) -> str:
+    """Google's error message, with anything that looks like a key removed (it can quote it)."""
+    try:
+        message = str(((response.json() or {}).get("error") or {}).get("message") or "")
+    except (ValueError, AttributeError):
+        message = ""
+    return _KEYLIKE.sub("[key]", " ".join(message.split()))[:240]
+
+
 async def call_gemini(client: httpx.AsyncClient, key: str, models: list[str], payload: dict
                       ) -> tuple[dict, str]:
-    """Try each model in turn; retired/overloaded models fall through to the next one."""
+    """Try each model in turn. Busy, retired, rejected or cut-off answers fall through to the next
+    model; a rejected key is reported (with Google's reason) only if no model answered."""
     last = AssistantError(502, "ai_error", "The AI provider request failed.")
+    denied: Optional[AssistantError] = None
     for model in models:
         try:
             response = await client.post(GEMINI_URL.format(model=model), json=payload_for(model, payload),
                                          headers={"x-goog-api-key": key})
         except httpx.TimeoutException:
+            log.warning("Gemini %s timed out", model)
             last = AssistantError(504, "ai_timeout", "The AI took too long to respond. Try again.")
             continue
         except httpx.HTTPError:
+            log.warning("Gemini %s could not be reached", model)
             last = AssistantError(502, "ai_unreachable", "Could not reach the AI provider.")
             continue
         if response.status_code == 200:
@@ -260,15 +276,18 @@ async def call_gemini(client: httpx.AsyncClient, key: str, models: list[str], pa
                 continue
             except ValueError as exc:
                 raise AssistantError(502, "ai_error", "The AI returned an invalid response.") from exc
-        log.warning("Gemini %s returned HTTP %s", model, response.status_code)
-        if response.status_code == 429:
+        reason = provider_reason(response)
+        log.warning("Gemini %s returned HTTP %s: %s", model, response.status_code, reason or "(no message)")
+        status = response.status_code
+        if status == 429:
             last = AssistantError(429, "quota", "The AI quota or rate limit was reached. Try again in a minute.")
-        elif response.status_code in (401, 403):
-            raise AssistantError(503, "ai_denied", "The server's Gemini key was rejected.")
-        elif response.status_code == 400:
-            raise AssistantError(502, "ai_rejected", "The AI rejected the request. Try rephrasing it.")
-        elif response.status_code == 404 or response.status_code >= 500:
+        elif status in (401, 403) or (status == 400 and "api key" in reason.lower()):
+            denied = AssistantError(503, "ai_denied", "Google rejected the server's Gemini key"
+                                    + (f": {reason}" if reason else "."))
+        elif status == 400:
+            last = AssistantError(502, "ai_rejected", "The AI rejected the request. Try rephrasing it.")
+        elif status == 404 or status >= 500:
             last = AssistantError(502, "ai_busy", "The AI is busy right now. Try again.")
         else:
-            raise AssistantError(502, "ai_error", "The AI provider request failed.")
-    raise last
+            last = AssistantError(502, "ai_error", "The AI provider request failed.")
+    raise denied or last

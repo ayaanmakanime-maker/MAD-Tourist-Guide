@@ -7,7 +7,13 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# backend/.env wins over variables left in the shell, so an old exported key cannot silently replace it.
+load_dotenv(override=True)
+
+
+def describe_key(key: str) -> str:
+    """Safe summary of a key for logs: never more than its first 4 characters."""
+    return f"set ({key[:4]}…, {len(key)} chars)" if key else "missing"
 
 
 def _int(name: str, default: int, minimum: int = 0) -> int:

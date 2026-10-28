@@ -102,10 +102,14 @@
     <string name="location_current">Your location</string>
     <string name="location_map_area">Map area</string>
     <string name="location_sheet_title">Where do you want to explore?</string>
-    <string name="location_privacy_note">Your location is only used to find places near you. It\'s requested once when you ask, never tracked in the background.</string>
+    <string name="location_privacy_note">Your location is only used to find places near you. While the app is open it follows you, so nearby results stay accurate. It\'s never tracked in the background.</string>
     <string name="location_use_device">Use my location</string>
     <string name="location_choose_area">Choose an area</string>
-    <string name="location_search_hint">Search an area (e.g. Bandra)</string>
+    <string name="location_search_hint">Area or landmark (e.g. Bandra)</string>
+    <string name="location_results_google">Matches from Google Maps. Tap the right one.</string>
+    <string name="location_results_device">Approximate matches from this phone (server offline). Tap the right one.</string>
+    <string name="location_result_desc_fmt">Explore near %1$s, %2$s</string>
+    <string name="location_accuracy_fmt">%1$s (±%2$s)</string>
     <string name="location_search_too_short">Type at least 2 letters</string>
     <string name="location_not_found">Couldn\'t find that area. Check the spelling or pick one below.</string>
     <string name="location_search_unavailable">Area search isn\'t available on this device right now. Pick an area below.</string>
@@ -282,12 +286,25 @@
         <item>Find restaurants that are currently open</item>
         <item>Plan a Mumbai day trip with a lunch stop</item>
         <item>What should I see near me in 2 hours?</item>
+        <item>How much of my budget is left?</item>
     </string-array>
     <string name="chat_fallback_title">The online assistant is unavailable, so here is an offline suggestion.</string>
     <string name="chat_fallback_intro">From the places already loaded near %1$s:</string>
     <string name="chat_fallback_plan_intro">A simple order to try near %1$s, with a food stop (straight-line nearest first, not an optimised route):</string>
     <string name="chat_fallback_none">I don\'t have matching places loaded. Open Explore to load places, or try again when you\'re online.</string>
     <string name="chat_fallback_open_unknown">I can\'t confirm which places are open right now without live data.</string>
+    <string name="chat_offline_budget_none">You haven\'t entered a total budget and number of days yet. Open Plan › Budget to add them.</string>
+    <string name="chat_offline_budget_fmt">From the budget you entered: %1$s for %2$s, with %3$s planned.</string>
+    <string name="chat_offline_budget_left_fmt">You have %1$s left, about %2$s per day.</string>
+    <string name="chat_offline_budget_over_fmt">You are over budget by %1$s. Reduce a category or raise the total.</string>
+    <plurals name="chat_offline_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <string name="chat_offline_plan_empty">Your plan is empty. Tap Add to plan on any place to start one.</string>
+    <string name="chat_offline_plan_intro">Your plan so far:</string>
+    <string name="chat_offline_plan_day_fmt">Day %1$d: %2$s</string>
+    <string name="chat_offline_plan_day_empty_fmt">Day %1$d: nothing planned yet</string>
     <string name="chat_fallback_verify">Check opening hours and prices before you go.</string>
     <string name="chat_offline_reason_fmt">Why: %1$s</string>
 
@@ -393,7 +410,7 @@
     <string name="settings_reset_quiz_confirm">Delete your quiz best scores and statistics?</string>
     <string name="settings_reset_yes">Reset</string>
     <string name="more_privacy_title">Privacy</string>
-    <string name="more_privacy_body">Your saved places, plan, budget and quiz progress are stored on this phone. Location is requested only when you ask for nearby places and is never tracked in the background. The assistant receives your selected area (rounded), the places on screen, your plan and budget numbers, never your name, email or exact position. Cloud backup happens only when you tap Back up.</string>
+    <string name="more_privacy_body">Your saved places, plan, budget and quiz progress are stored on this phone. Location is used only after you choose \"Use my location\": it is updated while the app is open so nearby results stay accurate, and never tracked in the background. The assistant receives your selected area (rounded), the places on screen, your plan and budget numbers, never your name, email or exact position. Cloud backup happens only when you tap Back up.</string>
     <string name="more_about_app">Tourist Guide v%1$s — your city helper for planning visits to Mumbai.</string>
 
     <!-- Account -->

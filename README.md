@@ -8,10 +8,10 @@ The app works without any keys: it falls back to a clearly labelled curated Mumb
 
 | Tab | What it does |
 |---|---|
-| **Explore** | Nearby places around your location or a chosen area. Category chips (Attractions, Restaurants, Cafés, Historic, …), search, radius, sort (relevance/distance/rating), *Open now*, pull-to-refresh, load more. Every list says where its data came from: **Live · Google Maps**, **Saved earlier (not live)** or **Curated guide**. Includes the Mumbai quiz entry. |
+| **Explore** | Nearby places around your location (high-accuracy fix, followed while the app is open) or a chosen area or landmark (looked up on Google Maps, with a list of matches to pick from). Category chips (Attractions, Restaurants, Cafés, Historic, …), search, radius, sort (relevance/distance/rating), *Open now*, pull-to-refresh, load more. Every list says where its data came from: **Live · Google Maps**, **Saved earlier (not live)** or **Curated guide**. Includes the Mumbai quiz entry. |
 | **Map** | The same places as Explore (one shared repository) plus your plan stops in a different colour. "Show on map" from any screen, "Search this area", locate-me. Uses Google Maps when `MAPS_API_KEY` is set, otherwise OpenStreetMap (no key needed). |
 | **Plan** | Itinerary organised by day: add/remove (with undo), reorder, move between days, notes, your own cost estimates, trip name/dates, navigate a whole day in Google Maps, "order by proximity" (a simple straight-line heuristic, clearly labelled). **Budget** toggle: total, days, food, transport, tickets, shopping, other → planned total, remaining, daily budget, per-day figures, utilisation and an over-budget warning. |
-| **Chat** | Travel assistant via the backend. Sends only your rounded area, loaded places, plan and budget numbers. Food questions trigger a live restaurant search on the server. Recommended places come back as "Add to plan" rows. Offline fallback picks from places already in the app. |
+| **Chat** | Travel assistant via the backend. Sends only your rounded area, loaded places, plan and budget numbers. Food questions trigger a live restaurant search on the server. Recommended places come back as "Add to plan" rows. If Gemini is busy or the key is rejected, the backend tries the backup model and reports Google's reason. Offline fallback answers from places already in the app, your plan and your budget. |
 | **More** | Optional account (Firebase email/password) and manual cloud backup, badges, saved places, travel-personality plans, theme (light/dark/system), live-places switch, server address, clear cached data, reset quiz, privacy notes. |
 
 ## Project layout
@@ -35,6 +35,8 @@ docs/       Setup guide, architecture, test cases, upgrade report
    ```
    Check http://localhost:8000/health.
 2. **Android**: open this folder in Android Studio (JDK 17+), let Gradle sync, optionally add `MAPS_API_KEY=` to `local.properties` to use Google Maps instead of the built-in OpenStreetMap map, and run on an emulator (API 24+). The emulator reaches your computer's backend at `http://10.0.2.2:8000` by default. On a phone, set the server address in **More › Settings**.
+
+Check your keys any time: `cd backend && python check_keys.py` (prints OK or Google's exact reason).
 
 Quick key setup (Gemini, Places, Maps): **[API_KEYS_QUICKSTART.md](API_KEYS_QUICKSTART.md)**. Full details incl. Firebase: [docs/SETUP.md](docs/SETUP.md).
 

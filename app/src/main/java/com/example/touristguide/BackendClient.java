@@ -96,6 +96,13 @@ public final class BackendClient {
         get("/places/search", q, PLACES_READ_TIMEOUT_MS, 1, cb);
     }
 
+    /** Up to 5 matches for an area or landmark; the server biases the search to Mumbai. */
+    public static void locate(String text, Callback<JSONObject> cb) {
+        Map<String, String> q = new LinkedHashMap<>();
+        q.put("q", text);
+        get("/places/locate", q, PLACES_READ_TIMEOUT_MS, 0, cb);
+    }
+
     public static void details(String googlePlaceId, Callback<JSONObject> cb) {
         get("/places/details/" + Uri.encode(googlePlaceId), new LinkedHashMap<>(), PLACES_READ_TIMEOUT_MS, 1, cb);
     }

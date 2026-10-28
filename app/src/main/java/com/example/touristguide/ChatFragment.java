@@ -195,7 +195,11 @@ public class ChatFragment extends Fragment implements AiClient.Listener, ChatAda
         LocationRepository.Selected loc = LocationRepository.selected();
         OfflineAssistant.Suggestion s = OfflineAssistant.suggest(ChatSession.lastQuestion, contextPlaces(), loc.lat, loc.lng);
         StringBuilder text = new StringBuilder(c.getString(R.string.chat_fallback_title));
-        if (s.places.isEmpty()) {
+        if (s.intent == OfflineAssistant.Intent.BUDGET) {
+            text.append("\n\n").append(budgetAnswer(c));
+        } else if (s.intent == OfflineAssistant.Intent.MY_PLAN) {
+            text.append("\n\n").append(planAnswer(c));
+        } else if (s.places.isEmpty()) {
             text.append("\n\n").append(c.getString(s.wantedOpenNow ? R.string.chat_fallback_open_unknown
                     : R.string.chat_fallback_none));
         } else {
@@ -205,6 +209,34 @@ public class ChatFragment extends Fragment implements AiClient.Listener, ChatAda
         String reason = c.getString(R.string.chat_fallback_verify) + "\n"
                 + c.getString(R.string.chat_offline_reason_fmt, Formats.error(c, error));
         settle(new ChatAdapter.Msg(ChatAdapter.BOT_OFFLINE, text.toString(), reason, s.places));
+    }
+
+    /** Offline answer from the user's own budget numbers (nothing is estimated). */
+    private static String budgetAnswer(android.content.Context c) {
+        BudgetCalculator.Inputs in = BudgetRepository.inputs(); // null until total and days are valid
+        if (in == null) return c.getString(R.string.chat_offline_budget_none);
+        BudgetCalculator.Summary sum = BudgetCalculator.calculate(in);
+        String days = c.getResources().getQuantityString(R.plurals.chat_offline_days, in.days, in.days);
+        String text = c.getString(R.string.chat_offline_budget_fmt, Money.inr(in.total), days, Money.inr(sum.planned));
+        return text + " " + (sum.overBudget
+                ? c.getString(R.string.chat_offline_budget_over_fmt, Money.inr(-sum.remaining))
+                : c.getString(R.string.chat_offline_budget_left_fmt, Money.inr(sum.remaining),
+                Money.inr(sum.remainingPerDay)));
+    }
+
+    /** Offline answer listing the user's plan by day. */
+    private static String planAnswer(android.content.Context c) {
+        Itinerary plan = PlanRepository.get();
+        if (plan.isEmpty()) return c.getString(R.string.chat_offline_plan_empty);
+        StringBuilder out = new StringBuilder(c.getString(R.string.chat_offline_plan_intro));
+        for (int day = 1; day <= plan.days(); day++) {
+            List<String> names = new ArrayList<>();
+            for (Itinerary.Stop stop : plan.stopsForDay(day)) names.add(stop.place.name);
+            out.append("\n").append(names.isEmpty()
+                    ? c.getString(R.string.chat_offline_plan_day_empty_fmt, day)
+                    : c.getString(R.string.chat_offline_plan_day_fmt, day, android.text.TextUtils.join(", ", names)));
+        }
+        return out.toString();
     }
 
     private static void settle(ChatAdapter.Msg reply) {

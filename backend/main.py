@@ -20,7 +20,7 @@ from pydantic import BaseModel, Field
 
 import assistant
 import places
-from config import Settings, get_settings
+from config import Settings, describe_key, get_settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("backend")
@@ -104,11 +104,15 @@ _http: Optional[httpx.AsyncClient] = None
 async def lifespan(_app: FastAPI):
     global _http
     _http = httpx.AsyncClient(timeout=httpx.Timeout(20.0, connect=8.0))
+    settings = get_settings()
+    log.info("Gemini key %s, model %s (fallback %s); Places key %s",
+             describe_key(settings.gemini_api_key), settings.gemini_model,
+             settings.gemini_fallback_model or "none", describe_key(settings.places_api_key))
     yield
     await _http.aclose()
 
 
-app = FastAPI(title="Tourist Guide backend", version="2.0.0", lifespan=lifespan)
+app = FastAPI(title="Tourist Guide backend", version="3.1.0", lifespan=lifespan)
 
 
 def get_client() -> httpx.AsyncClient:
@@ -203,6 +207,33 @@ async def places_search(
     except places.PlacesError as exc:
         _raise(exc)
     body = {"places": results, "next_page_token": token, "provider": "google_places"}
+    cache.put(cache_key, body)
+    return {**body, "cached": False}
+
+
+@app.get("/places/locate")
+async def places_locate(
+        request: Request,
+        q: str = Query(min_length=2, max_length=120),
+        lat: float = Query(places.MUMBAI_CENTRE[0], ge=-90, le=90),
+        lng: float = Query(places.MUMBAI_CENTRE[1], ge=-180, le=180),
+        settings: Settings = Depends(get_settings),
+        client: httpx.AsyncClient = Depends(get_client)):
+    """Accurate coordinates for an area or landmark the user typed (up to 5 matches)."""
+    key = _places_key(settings)
+    query = " ".join(q.split())
+    if len(query) < 2:
+        raise HTTPException(422, {"kind": "bad_request", "message": "Search text is too short."})
+    cache_key = f"locate:{query.lower()}:{lat:.2f}:{lng:.2f}"
+    cached = cache.get(cache_key, 24 * 3600)  # places don't move; a day is safe
+    if cached is not None:
+        return {**cached, "cached": True}
+    limiter.check(_client_id(request), settings.rate_limit_per_minute, "places", settings.daily_places_limit)
+    try:
+        results = await places.find_locations(client, key, query, lat, lng)
+    except places.PlacesError as exc:
+        _raise(exc)
+    body = {"results": results, "provider": "google_places"}
     cache.put(cache_key, body)
     return {**body, "cached": False}
 

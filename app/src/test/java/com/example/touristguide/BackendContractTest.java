@@ -131,4 +131,28 @@ public class BackendContractTest {
         assertEquals(Itinerary.AddResult.ADDED, PlanRepository.add(p, 1));
         assertNotNull(PlaceRepository.get(p.id));
     }
+
+    @Test
+    public void areaSearchReturnsGoogleMatchesThatCanBeSelected() {
+        AtomicReference<List<LocationRepository.AreaMatch>> found = new AtomicReference<>();
+        LocationRepository.findAreas(ApplicationProvider.getApplicationContext(), "Gateway of India",
+                new LocationRepository.AreasCallback() {
+                    @Override
+                    public void onAreas(List<LocationRepository.AreaMatch> matches) {
+                        found.set(matches);
+                    }
+
+                    @Override
+                    public void onFailure(LocationRepository.Failure failure) {
+                        throw new AssertionError(failure.name());
+                    }
+                });
+        waitFor(() -> found.get() != null);
+        LocationRepository.AreaMatch first = found.get().get(0);
+        assertTrue(first.fromGoogle);
+        assertEquals("Gateway of India", first.location.label);
+        assertEquals(18.9220, first.location.lat, 1e-6);
+        LocationRepository.select(first.location);
+        assertEquals("Gateway of India", LocationRepository.selected().label);
+    }
 }

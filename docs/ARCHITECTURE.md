@@ -37,7 +37,11 @@ Firebase Auth + Firestore (optional) ◀── AuthManager / CloudSync (manual b
 
 ## Location
 
-`LocationRepository` holds the *selected location*: the device position (one-shot `getCurrentLocation`, balanced power, never continuous), an area the user picked (presets or on-device Geocoder search), or Mumbai by default. Explore asks for permission only after explaining why, and everything works if the user declines.
+`LocationRepository` holds the *selected location*: the device position, an area the user picked, or Mumbai by default. Explore asks for permission only after explaining why, and everything works if the user declines.
+
+- **Device position**: a high-accuracy `getCurrentLocation` (GPS when available, up to 20 s, fixes at most 15 s old), falling back to the last known position if it is under 10 minutes old. The accuracy is kept and shown on the Map ("±10 m").
+- **Following (foreground only)**: while `MainActivity` is started and the user chose *Use my location*, location updates run (high accuracy, every 10–15 s, 50 m minimum). `shouldFollow` (unit tested) moves the search centre only for fixes within ±200 m when the user moved ≥ 250 m, or when a fix is far more precise than a coarse first one, at most once a minute; the places then reload. Updates stop in `onStop` and when the user picks an area. Nothing runs in the background.
+- **Area or landmark search**: `GET /places/locate` (Google Places Text Search biased to a 50 km circle around Mumbai) returns up to 5 matches with full addresses, and the sheet lists them so the user picks the right one. Without the server, the phone's Geocoder is used (restricted to the Mumbai region first) and its matches are labelled approximate.
 
 ## Plan and budget
 
@@ -50,7 +54,8 @@ Firebase Auth + Firestore (optional) ◀── AuthManager / CloudSync (manual b
 2. The backend (`/chat`) validates it with Pydantic. If the question is about food and a location is known, it runs a **live Places text search** (`vegetarian restaurant`, `cafe`, …, with `openNow` when asked) around the user or the selected place.
 3. It sends Gemini a system prompt with grounding rules (recommend only listed ids; never invent ratings, hours or prices; price level ≠ cost; ask one follow-up if information is missing), the context JSON (coordinates rounded again to ~1 km) and a **JSON response schema** `{reply, place_ids, needs_more_info}`.
 4. The backend keeps only `place_ids` that exist in the context (invented ids are dropped) and returns those places. The app shows them as rows with **Add to plan**.
-5. If anything fails, `OfflineAssistant` builds a labelled offline suggestion from places already in the app.
+5. Gemini models are tried in turn: busy (503), retired (404), rejected (400/401/403) or cut-off answers fall through to the backup model; Google's error message (with anything key-like removed) is logged and, if no model answers, returned to the app ("Google rejected the server's Gemini key: …").
+6. If anything fails, `OfflineAssistant` builds a labelled offline answer: places already in the app for food, café, day-plan and topic questions (beaches, museums, history, shopping, nature), or the user's own numbers for "how much budget is left" and "what's in my plan".
 
 ## Security and privacy
 

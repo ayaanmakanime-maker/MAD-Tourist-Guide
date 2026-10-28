@@ -65,7 +65,7 @@ Data layer
 6. **Chat**: server status, suggested prompts, transparent "shared with the assistant" line, grounded answers with add-to-plan rows, retry, offline fallback.
 7. **Quiz**: 60 questions (5 topics × 3 difficulties × 4), shuffled options, feedback with explanations, score and progress, results, retry, best scores.
 8. **More**: guest/account card with manual backup and restore, badges, saved places, travel personalities, theme, live-places switch, server address with connection test, clear cache (keeps trips), reset quiz, privacy notes.
-9. **Backend**: `/health`, `/places/nearby`, `/places/search`, `/places/details/{id}`, `/places/photo`, `/chat`.
+9. **Backend**: `/health`, `/places/nearby`, `/places/search`, `/places/locate`, `/places/details/{id}`, `/places/photo`, `/chat`; `check_keys.py` tests the keys against Google.
 
 ## 7. Input validation and error handling
 - Budget fields: digits only (commas and ₹ allowed), negatives, decimals and values above ₹10 crore are rejected with a message. Days must be 1–365. Long overflow is impossible.
@@ -80,7 +80,7 @@ Data layer
 See `docs/SETUP.md` (Google Cloud keys and restrictions, Gemini, Firebase, running the backend and app on an emulator or phone).
 
 ## 9. Test cases
-See `docs/TEST_CASES.md`. Automated: 52 JVM/Robolectric tests, 3 optional app↔backend contract tests and 39 backend tests. Device tests are listed with status "Not run" until you run them.
+See `docs/TEST_CASES.md`. Automated: 58 JVM/Robolectric tests, 4 optional app↔backend contract tests and 46 backend tests. Device tests are listed with status "Not run" until you run them.
 
 ## 10. Future enhancements
 - Google sign-in, automatic background sync with conflict resolution.

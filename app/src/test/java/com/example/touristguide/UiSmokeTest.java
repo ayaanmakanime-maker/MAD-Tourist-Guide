@@ -53,7 +53,11 @@ public class UiSmokeTest {
     }
 
     private static void waitFor(String what, BooleanSupplier condition) {
-        long end = System.currentTimeMillis() + 15_000;
+        waitFor(what, 15_000, condition);
+    }
+
+    private static void waitFor(String what, long timeoutMs, BooleanSupplier condition) {
+        long end = System.currentTimeMillis() + timeoutMs;
         while (System.currentTimeMillis() < end) {
             shadowOf(Looper.getMainLooper()).idle();
             if (condition.getAsBoolean()) return;
@@ -244,5 +248,41 @@ public class UiSmokeTest {
         waitFor("reload", () -> PlaceRepository.state().status == PlaceRepository.Status.CURATED_FALLBACK);
         assertEquals(bandra.lat, PlaceRepository.state().lat, 1e-9);
         assertFalse(LocationRepository.hasPermission(a));
+    }
+
+    @Test
+    public void offlineChatAnswersBudgetQuestionsFromTheUsersOwnNumbers() {
+        BudgetRepository.setText("total", "5000");
+        BudgetRepository.setText("days", "2");
+        BudgetRepository.setText("food", "2500");
+        BudgetRepository.setText("transport", "1500");
+        BudgetRepository.setText("tickets", "1800");
+        MainActivity a = launchMain();
+        selectTab(a, R.id.nav_chat);
+        ((EditText) a.findViewById(R.id.input)).setText("How much of my budget is left?");
+        a.findViewById(R.id.send).performClick();
+        waitFor("offline answer", () -> !ChatSession.waiting);
+        ChatAdapter.Msg last = ChatSession.MESSAGES.get(ChatSession.MESSAGES.size() - 1);
+        assertEquals(ChatAdapter.BOT_OFFLINE, last.kind);
+        assertTrue(last.text, last.text.contains("over budget by ₹800"));
+        assertTrue(last.places.isEmpty());
+    }
+
+    @Test
+    public void areaSearchOfflineFallsBackAndExplainsWhenNothingIsFound() {
+        MainActivity a = launchMain();
+        new LocationSheet().show(a.getSupportFragmentManager(), "loc");
+        shadowOf(Looper.getMainLooper()).idle();
+        LocationSheet sheet = (LocationSheet) a.getSupportFragmentManager().findFragmentByTag("loc");
+        View root = sheet.requireView();
+        ((EditText) root.findViewById(R.id.areaInput)).setText("Nowhere-at-all-xyz");
+        root.findViewById(R.id.areaGo).performClick();
+        com.google.android.material.textfield.TextInputLayout layout = root.findViewById(R.id.areaLayout);
+        // The server is unreachable, so the phone's Geocoder is used (Robolectric's times out after 15 s).
+        waitFor("search result", 45_000, () -> layout.getError() != null);
+        String error = layout.getError().toString();
+        assertTrue(error, error.equals(a.getString(R.string.location_not_found))
+                || error.equals(a.getString(R.string.location_search_unavailable)));
+        assertEquals(LocationRepository.DEFAULT.label, LocationRepository.selected().label);
     }
 }

@@ -9,12 +9,16 @@ import android.view.inputmethod.EditorInfo;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.touristguide.databinding.ItemAreaResultBinding;
 import com.example.touristguide.databinding.SheetLocationBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
 
+import java.util.List;
+
 /**
- * Lets the user choose where to explore: their current location, a searched area, or a preset.
+ * Lets the user choose where to explore: their current location, a searched area or landmark
+ * (matches listed so the right one can be picked), or a preset.
  * Works without location permission. Reports back through the fragment result {@link #RESULT}.
  */
 public class LocationSheet extends BottomSheetDialogFragment {
@@ -71,11 +75,15 @@ public class LocationSheet extends BottomSheetDialogFragment {
         binding.areaLayout.setError(null);
         binding.progress.setVisibility(View.VISIBLE);
         binding.areaGo.setEnabled(false);
-        LocationRepository.searchArea(requireContext(), text, new LocationRepository.Callback() {
+        binding.results.removeAllViews();
+        binding.resultsTitle.setVisibility(View.GONE);
+        LocationRepository.findAreas(requireContext(), text, new LocationRepository.AreasCallback() {
             @Override
-            public void onLocation(LocationRepository.Selected selected) {
+            public void onAreas(List<LocationRepository.AreaMatch> matches) {
                 if (binding == null) return;
-                done();
+                binding.progress.setVisibility(View.GONE);
+                binding.areaGo.setEnabled(true);
+                showMatches(matches);
             }
 
             @Override
@@ -87,6 +95,24 @@ public class LocationSheet extends BottomSheetDialogFragment {
                         ? R.string.location_not_found : R.string.location_search_unavailable));
             }
         });
+    }
+
+    /** Lists the matches so the user picks the right one (names alone are often ambiguous). */
+    private void showMatches(List<LocationRepository.AreaMatch> matches) {
+        binding.resultsTitle.setText(matches.get(0).fromGoogle
+                ? R.string.location_results_google : R.string.location_results_device);
+        binding.resultsTitle.setVisibility(View.VISIBLE);
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        for (LocationRepository.AreaMatch match : matches) {
+            ItemAreaResultBinding row = ItemAreaResultBinding.inflate(inflater, binding.results, false);
+            row.areaName.setText(match.location.label);
+            row.areaAddress.setText(match.address);
+            row.areaAddress.setVisibility(match.address.isEmpty() ? View.GONE : View.VISIBLE);
+            row.getRoot().setContentDescription(getString(R.string.location_result_desc_fmt,
+                    match.location.label, match.address));
+            row.getRoot().setOnClickListener(v -> choose(match.location));
+            binding.results.addView(row.getRoot());
+        }
     }
 
     private void choose(LocationRepository.Selected preset) {

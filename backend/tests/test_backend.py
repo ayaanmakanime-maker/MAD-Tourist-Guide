@@ -392,3 +392,81 @@ def test_open_ended_price_range_has_no_end():
     assert places.normalize_place(raw)["price_range"] == {"currency": "INR", "start": 2000, "end": None}
     raw["priceRange"]["endPrice"]["units"] = "0"
     assert places.normalize_place(raw)["price_range"]["end"] is None
+
+
+# --------------------------------------------------------------------------- area lookup
+
+LANDMARK = {"id": "ChIJ-palladium01", "displayName": {"text": "Phoenix Palladium"},
+            "formattedAddress": "462, Senapati Bapat Marg, Lower Parel, Mumbai",
+            "location": {"latitude": 18.9945, "longitude": 72.8251}, "types": ["shopping_mall"]}
+
+
+def test_locate_returns_matches_biased_to_mumbai(env):
+    client, rec = make_client(lambda r: httpx.Response(
+        200, json={"places": [LANDMARK, LANDMARK, {"id": "no-location", "displayName": {"text": "X"}}]}))
+    res = client.get("/places/locate", params={"q": "  phoenix   palladium "})
+    assert res.status_code == 200
+    assert res.json()["results"] == [{"id": "ChIJ-palladium01", "name": "Phoenix Palladium",
+                                      "address": "462, Senapati Bapat Marg, Lower Parel, Mumbai",
+                                      "lat": 18.9945, "lng": 72.8251, "types": ["shopping_mall"]}]
+    sent = json.loads(rec.requests[0].content)
+    assert sent["textQuery"] == "phoenix palladium"
+    assert sent["locationBias"]["circle"]["center"] == {"latitude": 19.076, "longitude": 72.8777}
+    assert sent["locationBias"]["circle"]["radius"] == 50000
+    assert rec.requests[0].headers["X-Goog-FieldMask"] == places.LOCATE_FIELD_MASK
+    # Identical lookups are served from the cache.
+    assert client.get("/places/locate", params={"q": "Phoenix Palladium"}).json()["cached"] is True
+    assert len(rec.requests) == 1
+
+
+def test_locate_validates_input(env):
+    client, rec = make_client(lambda r: httpx.Response(200, json={"places": []}))
+    assert client.get("/places/locate", params={"q": "a"}).status_code == 422
+    assert client.get("/places/locate", params={"q": "Dadar", "lat": 91}).status_code == 422
+    assert rec.requests == []
+
+
+# --------------------------------------------------------------------------- Gemini errors
+
+def test_chat_tries_next_model_when_key_is_rejected_for_one_model(env):
+    def handler(request):
+        if "model-a" in request.url.path:
+            return httpx.Response(403, json={"error": {"message": "Model not available for this key"}})
+        return gemini_reply({"reply": "ok", "place_ids": []})
+    client, rec = make_client(handler)
+    res = client.post("/chat", json={"message": "hello"})
+    assert res.status_code == 200 and res.json()["model"] == "model-b"
+
+
+def test_rejected_key_reports_googles_reason_without_the_key(env):
+    secret = "AIzaSyD-THIS-IS-A-SECRET-KEY-123456"
+    client, rec = make_client(lambda r: httpx.Response(
+        403, json={"error": {"message": f"Consumer 'api_key:{secret}' has been suspended."}}))
+    res = client.post("/chat", json={"message": "hello"})
+    assert res.status_code == 503 and res.json()["detail"]["kind"] == "ai_denied"
+    message = res.json()["detail"]["message"]
+    assert "has been suspended" in message and secret not in message and "[key]" in message
+    assert len(rec.requests) == 2  # both models were tried
+
+
+def test_bad_request_for_one_model_tries_the_next(env):
+    def handler(request):
+        if "model-a" in request.url.path:
+            return httpx.Response(400, json={"error": {"message": "Unknown field thinkingConfig"}})
+        return gemini_reply({"reply": "ok", "place_ids": []})
+    client, _ = make_client(handler)
+    assert client.post("/chat", json={"message": "hello"}).json()["model"] == "model-b"
+
+
+def test_key_summary_never_shows_the_key():
+    import config
+    assert config.describe_key("") == "missing"
+    assert config.describe_key("AQ.FakeKey1234") == "set (AQ.F…, 14 chars)"
+
+
+def test_invalid_key_reported_as_rejected_key_not_bad_question(env):
+    client, _ = make_client(lambda r: httpx.Response(
+        400, json={"error": {"message": "API key not valid. Please pass a valid API key."}}))
+    res = client.post("/chat", json={"message": "hello"})
+    assert res.status_code == 503 and res.json()["detail"]["kind"] == "ai_denied"
+    assert "API key not valid" in res.json()["detail"]["message"]

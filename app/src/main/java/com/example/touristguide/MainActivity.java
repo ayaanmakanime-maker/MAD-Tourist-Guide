@@ -61,6 +61,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        // Follow the user while the app is on screen (only if they chose "Use my location").
+        LocationRepository.setForeground(this, true, () -> {
+            PlaceRepository.State s = PlaceRepository.state();
+            PlaceRepository.load(s == null ? Store.savedQuery() : s.query, true);
+        });
+    }
+
+    @Override
+    protected void onStop() {
+        LocationRepository.setForeground(this, false, null);
+        super.onStop();
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt("tab", loadedTab);
         super.onSaveInstanceState(outState);

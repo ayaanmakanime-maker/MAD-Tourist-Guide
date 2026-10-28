@@ -68,6 +68,7 @@ Keep that terminal open while using the app. After editing `backend/.env`, stop 
 
 ## 5. Check it worked
 
+- In the `backend` folder run `python check_keys.py` → it asks Google directly and prints **OK** for each key, or Google's exact reason (keys are never printed).
 - Open http://localhost:8000/health → should show `"ai_configured":true` and `"places_configured":true`.
 - In the app (emulator): Explore banner says **Live from Google Maps**, Chat says **Online**.
 - On a real phone: **More › Settings › Server address** → `http://<your Mac's IP>:8000`
@@ -81,6 +82,7 @@ Keep that terminal open while using the app. After editing `backend/.env`, stop 
 | "Live places are not configured on the server" | `PLACES_API_KEY` is empty, or you didn't restart the backend. |
 | "Google Places rejected the server key" | Billing not linked, or **Places API (New)** not enabled, or key restricted to the wrong API. |
 | Chat: "AI isn't configured on the server" | `GEMINI_API_KEY` is empty, or the backend wasn't restarted. |
+| Chat: "Google rejected the server's Gemini key: …" or `403 Forbidden` in the backend terminal | Run `python check_keys.py`. The backend prints which key it loaded at startup (`Gemini key set (AQ.A…)`); `backend/.env` now wins over an old key exported in the Terminal. |
 | Google map is grey | Billing/Maps SDK not enabled for that key's project. Use **More › Settings › Map style → OpenStreetMap** meanwhile. |
 
 More detail: `docs/SETUP.md`.

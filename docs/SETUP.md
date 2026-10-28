@@ -66,11 +66,14 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 Check http://localhost:8000/health → `{"status":"ok","ai_configured":true,"places_configured":true,...}`.
 Interactive API docs: http://localhost:8000/docs.
 
+To check the keys themselves: `python check_keys.py` (prints OK per key, or Google's reason; never prints the keys).
+
 | Endpoint | Purpose |
 |---|---|
 | `GET /health` | Status and which providers are configured |
 | `GET /places/nearby?lat&lng&radius&category&rank` | Nearby Search (New) |
 | `GET /places/search?q&lat&lng&radius&category&open_now&page_token` | Text Search (New), paginated |
+| `GET /places/locate?q` | Up to 5 matches (name, address, coordinates) for an area or landmark, biased to Mumbai |
 | `GET /places/details/{place_id}` | Fresh details for one place |
 | `GET /places/photo?name&max_width` | Short-lived photo URL (no key in it) |
 | `POST /chat` | Grounded assistant (existing endpoint, extended request body) |
