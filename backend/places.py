@@ -74,8 +74,10 @@ class PlacesError(Exception):
 def _price_units(money: Any) -> Optional[int]:
     if not isinstance(money, dict):
         return None
+    if money.get("units") is None:
+        return None
     try:
-        return int(money.get("units", 0) or 0)
+        return int(money["units"])
     except (TypeError, ValueError):
         return None
 
@@ -99,6 +101,9 @@ def normalize_place(raw: dict) -> Optional[dict]:
     price_range = raw.get("priceRange") or {}
     start = price_range.get("startPrice") or {}
     end = price_range.get("endPrice") or {}
+    start_units, end_units = _price_units(start), _price_units(end)
+    if end_units is not None and (end_units <= 0 or (start_units is not None and end_units < start_units)):
+        end_units = None  # open-ended range ("from ₹2,000"), not "₹2,000–₹0"
 
     photo = None
     photos = raw.get("photos") or []
@@ -121,8 +126,8 @@ def normalize_place(raw: dict) -> Optional[dict]:
         "price_level": raw.get("priceLevel"),
         "price_range": {
             "currency": start.get("currencyCode") or end.get("currencyCode"),
-            "start": _price_units(start),
-            "end": _price_units(end),
+            "start": start_units,
+            "end": end_units,
         } if (start or end) else None,
         "open_now": hours.get("openNow"),
         "hours": [h for h in hours.get("weekdayDescriptions") or [] if isinstance(h, str)],

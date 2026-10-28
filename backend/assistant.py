@@ -128,7 +128,7 @@ def build_payload(request: dict, context: dict) -> dict:
         "contents": contents,
         "generationConfig": {
             "temperature": 0.4,
-            "maxOutputTokens": 1024,
+            "maxOutputTokens": 2048,
             "responseMimeType": "application/json",
             "responseSchema": RESPONSE_SCHEMA,
         },
@@ -152,6 +152,12 @@ def parse_gemini(data: dict) -> dict:
         if not isinstance(parsed, dict) or not isinstance(parsed.get("reply"), str):
             raise ValueError("unexpected shape")
     except ValueError:
+        salvaged = _salvage(text)
+        if salvaged:
+            return salvaged
+        if text.lstrip().startswith("{"):
+            # Broken JSON (usually cut off by the output limit): never show it to the user.
+            raise AssistantError(502, "ai_truncated", "The AI answer was cut off. Try again.")
         # Model ignored the schema: keep the text but recommend no places.
         return {"reply": text, "place_ids": [], "needs_more_info": False}
     ids = parsed.get("place_ids") if isinstance(parsed.get("place_ids"), list) else []
@@ -160,6 +166,46 @@ def parse_gemini(data: dict) -> dict:
         "place_ids": [i for i in ids if isinstance(i, str)],
         "needs_more_info": bool(parsed.get("needs_more_info")),
     }
+
+
+_REPLY_FIELD = re.compile(r'"reply"\s*:\s*"((?:[^"\\]|\\.)*)', re.S)
+_IDS_FIELD = re.compile(r'"place_ids"\s*:\s*\[([^\]]*)\]')
+
+
+def _salvage(text: str) -> Optional[dict]:
+    """Recover the reply from JSON that was cut off (e.g. at the token limit)."""
+    match = _REPLY_FIELD.search(text)
+    if not match or not match.group(1).strip():
+        return None
+    raw = match.group(1)
+    reply = None
+    for cut in range(0, 7):  # drop a partial escape sequence at the cut-off point
+        try:
+            reply = json.loads('"' + raw[:len(raw) - cut] + '"')
+            break
+        except ValueError:
+            continue
+    if not reply or not reply.strip():
+        return None
+    reply = reply.strip()
+    if text[match.end():match.end() + 1] != '"':
+        reply += " …"
+    ids: list[str] = []
+    ids_match = _IDS_FIELD.search(text)
+    if ids_match:
+        try:
+            ids = [i for i in json.loads("[" + ids_match.group(1) + "]") if isinstance(i, str)]
+        except ValueError:
+            ids = []
+    return {"reply": format_reply(reply), "place_ids": ids, "needs_more_info": False}
+
+
+def payload_for(model: str, payload: dict) -> dict:
+    """Gemini 3 models think by default; low thinking keeps answers fast and within the output limit."""
+    if not model.startswith("gemini-3"):
+        return payload
+    config = dict(payload["generationConfig"], thinkingConfig={"thinkingLevel": "low"})
+    return dict(payload, generationConfig=config)
 
 
 _INLINE_BULLET = re.compile(r"([:.!?)])\s+-\s+(?=\S)")
@@ -196,7 +242,7 @@ async def call_gemini(client: httpx.AsyncClient, key: str, models: list[str], pa
     last = AssistantError(502, "ai_error", "The AI provider request failed.")
     for model in models:
         try:
-            response = await client.post(GEMINI_URL.format(model=model), json=payload,
+            response = await client.post(GEMINI_URL.format(model=model), json=payload_for(model, payload),
                                          headers={"x-goog-api-key": key})
         except httpx.TimeoutException:
             last = AssistantError(504, "ai_timeout", "The AI took too long to respond. Try again.")
@@ -207,6 +253,11 @@ async def call_gemini(client: httpx.AsyncClient, key: str, models: list[str], pa
         if response.status_code == 200:
             try:
                 return parse_gemini(response.json()), model
+            except AssistantError as exc:
+                if exc.kind != "ai_truncated":
+                    raise
+                last = exc  # cut-off answer: try the next model
+                continue
             except ValueError as exc:
                 raise AssistantError(502, "ai_error", "The AI returned an invalid response.") from exc
         log.warning("Gemini %s returned HTTP %s", model, response.status_code)

@@ -80,7 +80,7 @@ Data layer
 See `docs/SETUP.md` (Google Cloud keys and restrictions, Gemini, Firebase, running the backend and app on an emulator or phone).
 
 ## 9. Test cases
-See `docs/TEST_CASES.md`. Automated: 52 JVM/Robolectric tests, 3 optional app↔backend contract tests and 34 backend tests. Device tests are listed with status "Not run" until you run them.
+See `docs/TEST_CASES.md`. Automated: 52 JVM/Robolectric tests, 3 optional app↔backend contract tests and 39 backend tests. Device tests are listed with status "Not run" until you run them.
 
 ## 10. Future enhancements
 - Google sign-in, automatic background sync with conflict resolution.

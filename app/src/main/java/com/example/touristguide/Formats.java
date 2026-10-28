@@ -32,7 +32,10 @@ final class Formats {
     static String googlePrice(Context c, Place p) {
         if (p.priceStart != null || p.priceEnd != null) {
             String from = p.priceStart == null ? null : Money.inr(p.priceStart);
-            String to = p.priceEnd == null ? null : Money.inr(p.priceEnd);
+            // An end of 0 or below the start means "and up" (older cached data), never "₹2,000–₹0".
+            boolean hasEnd = p.priceEnd != null && p.priceEnd > 0
+                    && (p.priceStart == null || p.priceEnd >= p.priceStart);
+            String to = hasEnd ? Money.inr(p.priceEnd) : null;
             boolean inr = p.priceCurrency == null || "INR".equals(p.priceCurrency);
             if (inr) {
                 if (from != null && to != null) return c.getString(R.string.price_range_fmt, from, to);

@@ -299,6 +299,35 @@ def test_chat_handles_non_json_model_text(env):
     assert res.json()["reply"] == "plain answer" and res.json()["places"] == []
 
 
+def test_chat_recovers_reply_from_cut_off_json(env):
+    cut = '{"reply": "Try these veg places:\\n- Samrat\\n- Swati Snac'
+    client, _ = make_client(lambda r: httpx.Response(
+        200, json={"candidates": [{"content": {"parts": [{"text": cut}]}, "finishReason": "MAX_TOKENS"}]}))
+    res = client.post("/chat", json={"message": "hello"})
+    assert res.status_code == 200
+    assert res.json()["reply"] == "Try these veg places:\n- Samrat\n- Swati Snac …"
+    assert "{" not in res.json()["reply"]
+
+
+def test_chat_tries_next_model_when_json_is_unusable(env):
+    def handler(request):
+        if "model-a" in request.url.path:
+            return httpx.Response(200, json={"candidates": [{"content": {"parts": [{"text": '{"rep'}]}}]})
+        return gemini_reply({"reply": "ok", "place_ids": []})
+    client, rec = make_client(handler)
+    res = client.post("/chat", json={"message": "hello"})
+    assert res.status_code == 200 and res.json()["reply"] == "ok" and res.json()["model"] == "model-b"
+
+
+def test_gemini_3_models_use_low_thinking():
+    payload = assistant.build_payload({"message": "hi"}, {"city": "Mumbai"})
+    assert payload["generationConfig"]["maxOutputTokens"] == 2048
+    assert assistant.payload_for("gemini-3-flash-preview", payload)["generationConfig"]["thinkingConfig"] == {
+        "thinkingLevel": "low"}
+    assert "thinkingConfig" not in assistant.payload_for("gemini-2.5-flash", payload)["generationConfig"]
+    assert "thinkingConfig" not in payload["generationConfig"]  # the shared payload is not modified
+
+
 # --------------------------------------------------------------------------- unit helpers
 
 @pytest.mark.parametrize("message,query,open_now,near_selected", [
@@ -354,3 +383,12 @@ def test_inline_bullets_are_split_into_lines():
     assert assistant.format_reply("Budget is Rs 500. 2 people can share.") == "Budget is Rs 500. 2 people can share."
     already = "Plan:\n- A\n- B"
     assert assistant.format_reply(already) == already
+
+
+def test_open_ended_price_range_has_no_end():
+    # Google sometimes sends an endPrice without units for "₹2,000 and up".
+    raw = {**RESTAURANT, "priceRange": {"startPrice": {"currencyCode": "INR", "units": "2000"},
+                                        "endPrice": {"currencyCode": "INR"}}}
+    assert places.normalize_place(raw)["price_range"] == {"currency": "INR", "start": 2000, "end": None}
+    raw["priceRange"]["endPrice"]["units"] = "0"
+    assert places.normalize_place(raw)["price_range"]["end"] is None
